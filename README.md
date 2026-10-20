@@ -318,6 +318,43 @@ print(seg["bbox"])      # {"x_min": ..., "y_min": ..., "x_max": ..., "y_max": ..
 
 Note: Segmentation requires Moondream 3 and separate model weights. Contact [moondream.ai](https://moondream.ai) for access.
 
+## Batched Moondream image encoding
+
+The native Moondream vision path can gather crops from several requests admitted
+in the same prefill launch. Enable it explicitly:
+
+```python
+cfg = RuntimeConfig(
+    model="moondream3.1-9B-A2B",
+    max_batch_size=16,
+    moondream_vision_batch_crops=32,
+)
+```
+
+The default `moondream_vision_batch_crops=None` retains per-image encoding and
+its existing graph/workspace shapes. A positive capacity enables cross-request
+crop batches; the effective capacity is at least the model's maximum crops per
+image. Tower workspaces use that capacity, while gathered inputs and features
+scale with the admitted request batch. Outputs are copied before graph-buffer
+reuse, then reconstructed from each image's own crop interval. Cache hits and
+text-only requests do not enter the image encoder. The separate Hopper/SigLIP
+backend retains its per-image path.
+
+`moondream_prefill_token_floor` defaults to 2048, preserving scheduler behavior.
+Increasing it may admit more images into one prefill, but also increases text
+activation and expert workspace memory. Request slots and KV pages remain hard
+limits. Concurrent requests are not necessarily one equally large prefill.
+On our shared 32 GiB RTX 5090, a 16384-token target already exhausts the native
+control's 19.13 GiB allocator allowance; do not treat that target as a universally
+safe setting.
+
+This change does not replace attention, projections or expert kernels. Native
+BF16 computations can vary with batch shape; image ownership and bounded buffer
+reuse do not imply bitwise full-model invariance. The performance and output
+comparison must be evaluated independently from the experimental invariant
+execution patch. Cross-request gathering does not guarantee a throughput gain;
+additional padding and copies can offset fewer tower launches.
+
 ## Streaming
 
 For longer responses, you can stream tokens as they're generated:

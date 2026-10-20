@@ -269,3 +269,23 @@ def test_prefill_planner_keeps_zero_token_prefill_isolated():
     )
 
     assert [candidate.request.request_id for candidate in batch] == [1]
+
+
+def test_runtime_prefill_target_batches_images_without_bypassing_page_budget():
+    from types import SimpleNamespace
+    from kestrel.scheduler.scheduler import GenerationScheduler
+    scheduler = GenerationScheduler.__new__(GenerationScheduler)
+    candidates = [_candidate(
+        i, submitted_at=float(i), prompt_length=740, skip_positions=0,
+        can_reuse=False, use_prefix_attn=True, pages_needed=740,
+        cohort_key=(None, bytes([i])),
+    ) for i in range(16)]
+    scheduler.waiting = list(range(16))
+    scheduler._make_prefill_candidate = lambda i: candidates[i]
+    scheduler.runtime = SimpleNamespace(prefill_budget=lambda: (12000,16))
+    assert len(scheduler._select_prefill_batch(16)) == 3
+    scheduler.runtime.prefill_launch_token_floor = 16384
+    assert len(scheduler._select_prefill_batch(16)) == 16
+    scheduler.runtime.prefill_budget = lambda: (2220,16)
+    assert len(scheduler._select_prefill_batch(16)) == 3
+    assert len(scheduler._select_prefill_batch(2)) == 2

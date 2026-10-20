@@ -34,6 +34,7 @@ def _make_runtime(seq_lens: dict[int, int]) -> tuple[runtime_mod.MoondreamRuntim
     captured: dict = {}
     runtime = runtime_mod.MoondreamRuntime.__new__(runtime_mod.MoondreamRuntime)
     runtime.max_batch_size = 8
+    runtime._batch_vision = False
     runtime.device = torch.device("cpu")
     runtime.dtype = torch.float32
     runtime.bos_embed = torch.empty(1, 4)

@@ -1807,7 +1807,8 @@ class GenerationScheduler:
             capacity_remaining=capacity_remaining,
             slot_budget=slot_budget,
             page_budget=page_budget,
-            token_floor=_MIN_PREFILL_LAUNCH_TOKENS,
+            token_floor=getattr(self.runtime, "prefill_launch_token_floor",
+                                _MIN_PREFILL_LAUNCH_TOKENS),
         )
 
     def _acquire_prefill_staging(self) -> PrefillStaging:

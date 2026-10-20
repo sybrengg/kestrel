@@ -506,6 +506,7 @@ class MoondreamRuntime:
         self.decode_path = getattr(cfg, "decode_path", "auto")
         self.generated_decode = None
         self._cfg = cfg
+        self.prefill_launch_token_floor = cfg.moondream_prefill_token_floor
         self.device = cfg.resolved_device()
         self.execution_shape = ExecutionShape.AUTOREGRESSIVE
         # Speculative decoding is not wired for Moondream; decode one token per
@@ -518,6 +519,10 @@ class MoondreamRuntime:
 
         self._spec = get_spec(cfg.model)
         self.config = MoondreamConfig.from_dict(deepcopy(self._spec.default_config))
+        self._batch_vision = cfg.moondream_vision_batch_crops is not None
+        self._vision_batch_capacity = max(
+            self.config.vision.max_crops + 1, cfg.moondream_vision_batch_crops or 0,
+        )
 
         self._kv_layer_k_scales: list[float] | None = None
         self._kv_layer_v_scales: list[float] | None = None
@@ -1511,27 +1516,93 @@ class MoondreamRuntime:
                 return self._vision_backend.encode_crops(crops, tiling)
             outputs = self._encode_native_vision_crops(crops)
 
-            # Rest unchanged: projection, reconstruction
-            global_features = outputs[0]
-            local = outputs[1:].reshape(
-                -1,
-                self.config.vision.enc_n_layers,
-                self.config.vision.enc_n_layers,
-                self.config.vision.enc_dim,
-            )
-            reconstructed = reconstruct_from_crops(
-                local.to(dtype=torch.float32),
-                tiling,
-                overlap_margin=self.config.vision.overlap_margin,
-                patch_size=1,
-            )
-            reconstructed = reconstructed.to(device=self.device, dtype=outputs.dtype)
-            return vision_projection(
-                global_features,
-                reconstructed,
-                self.model.vision,
-                self.config.vision,
-            )
+            return self._project_vision_crops(outputs, tiling)
+
+    def _project_vision_crops(self, outputs: Tensor, tiling: tuple[int, int]) -> Tensor:
+        """Reconstruct one image only; never mix crops from different requests."""
+        global_features = outputs[0]
+        local = outputs[1:].reshape(
+            -1, self.config.vision.enc_n_layers,
+            self.config.vision.enc_n_layers, self.config.vision.enc_dim,
+        )
+        reconstructed = reconstruct_from_crops(
+            local.to(dtype=torch.float32), tiling,
+            overlap_margin=self.config.vision.overlap_margin, patch_size=1,
+        ).to(device=self.device, dtype=outputs.dtype)
+        return vision_projection(
+            global_features, reconstructed, self.model.vision, self.config.vision,
+        )
+
+    def encode_images(
+        self,
+        images: Sequence[Optional[np.ndarray]],
+        overlaps: Sequence[Optional[OverlapCropOutput]],
+    ) -> list[Tensor]:
+        """Encode crops across requests using the existing bounded vision buffers.
+
+        The native tower's batch dimension is independent crops. Gather crops
+        before launching it, then restore each image's exact crop interval before
+        reconstruction/projection. Clone graph outputs before replay overwrites
+        their storage. Tower workspaces stay bounded by moondream_vision_batch_crops;
+        gathered inputs/features scale with the admitted launch batch.
+        """
+        if len(images) != len(overlaps):
+            raise ValueError("images and overlaps must have the same length")
+        if not images:
+            return []
+        if len(images) == 1 or self._vision_backend is not None:
+            return [self.encode_image(image, overlap=overlap).clone()
+                    for image, overlap in zip(images, overlaps)]
+        from kestrel.utils.image import decode_to_srgb
+
+        with torch.inference_mode():
+            prepared = []
+            for image, overlap in zip(images, overlaps):
+                if overlap is not None:
+                    item = prepare_crops_from_overlap(overlap, self.device, self.dtype)
+                else:
+                    if image is None:
+                        raise ValueError("image or overlap is required")
+                    item = prepare_crops(decode_to_srgb(image), self.config.vision,
+                                         self.device, self.dtype)
+                prepared.append(item)
+            capacity = int(self._vision_input.shape[0])
+            crops = torch.cat([item[0] for item in prepared], dim=0)
+            features = torch.cat([
+                self._encode_native_vision_crops(crops[start:start + capacity]).clone()
+                for start in range(0, len(crops), capacity)
+            ], dim=0)
+            outputs = []
+            start = 0
+            for image_crops, tiling in prepared:
+                end = start + len(image_crops)
+                outputs.append(self._project_vision_crops(features[start:end], tiling))
+                start = end
+            return outputs
+
+    def _encode_prefill_images(self, prepared_sequences, images, overlaps):
+        """Gather only cache misses; keep row and multi-image index ownership."""
+        pending_images, pending_overlaps, owners = [], [], []
+        result = [None] * len(prepared_sequences)
+        if not self._batch_vision:
+            return result
+        for row, (prepared, image, overlap) in enumerate(
+            zip(prepared_sequences, images, overlaps)
+        ):
+            if image is None and overlap is None:
+                continue
+            if prepared.cache_result.can_reuse:
+                continue
+            row_images = list(image) if isinstance(image, (list, tuple)) else [image]
+            result[row] = [None] * len(row_images)
+            for index, item in enumerate(row_images):
+                pending_images.append(item)
+                pending_overlaps.append(overlap if len(row_images) == 1 else None)
+                owners.append((row, index))
+        encoded = self.encode_images(pending_images, pending_overlaps)
+        for (row, index), features in zip(owners, encoded):
+            result[row][index] = features
+        return result
 
     # ------------------------------------------------------------------
     # Prefill preparation helpers
@@ -1743,6 +1814,7 @@ class MoondreamRuntime:
         *,
         staging: PrefillInputStaging,
         row: int,
+        encoded_images: Sequence[Tensor] | None = None,
     ) -> tuple[Tensor, int, Optional[Tensor]]:
         """Prepare inputs for full prefill (cache-miss path).
 
@@ -1775,7 +1847,8 @@ class MoondreamRuntime:
                     segments.append(seg)
                     block_ids.extend([-1] * int(seg.shape[1]))
                 marker = tokens_list[mpos]
-                seg = self.encode_image(images[marker.index]).unsqueeze(0)
+                seg = (encoded_images[marker.index] if encoded_images is not None
+                       else self.encode_image(images[marker.index])).unsqueeze(0)
                 segments.append(seg)
                 block_ids.extend([marker.index] * int(seg.shape[1]))
                 cursor = mpos + 1
@@ -1797,7 +1870,8 @@ class MoondreamRuntime:
                 segments.append(prompt_embed[:, :1, :])  # BOS
                 block_ids.append(-1)
             if has_image:
-                seg = self.encode_image(image, overlap=image_crops).unsqueeze(0)
+                seg = (encoded_images[0] if encoded_images is not None
+                       else self.encode_image(image, overlap=image_crops)).unsqueeze(0)
                 segments.append(seg)
                 block_ids.extend([0] * int(seg.shape[1]))
             if prompt_embed is not None and len(tokens_list) > 1:
@@ -2030,6 +2104,7 @@ class MoondreamRuntime:
         image_crops: Optional[OverlapCropOutput],
         staging: PrefillInputStaging,
         row: int,
+        encoded_images: Sequence[Tensor] | None = None,
     ) -> tuple[Tensor, int, bool]:
         """Build per-sequence prefill inputs for a prepared sequence."""
         tokens_list = prepared.tokens_list
@@ -2068,6 +2143,7 @@ class MoondreamRuntime:
                     prompt_len,
                     staging=staging,
                     row=row,
+                    encoded_images=encoded_images,
                 )
             )
 
@@ -2120,6 +2196,9 @@ class MoondreamRuntime:
         # Keep all GPU work on the compute stream so all callers share identical
         # ordering semantics.
         with stream_context(self._compute_stream):
+            encoded_rows = self._encode_prefill_images(
+                prepared_sequences, images, image_crops_list,
+            )
             per_inputs: list[Tensor] = []
             position_starts: list[int] = []
             per_block_ids: list[Optional[Tensor]] = []
@@ -2134,6 +2213,8 @@ class MoondreamRuntime:
                         image_crops=image_crops,
                         staging=input_staging,
                         row=row,
+                        **({"encoded_images": encoded_rows[row]}
+                           if encoded_rows[row] is not None else {}),
                     )
                 )
                 if inputs_embeds.shape[1] == 0:
@@ -2799,7 +2880,7 @@ class MoondreamRuntime:
         # The +1 accounts for the global/overview crop added by overlap_crop_image
         vision_cfg = self.config.vision
         patches_per_crop = (vision_cfg.crop_size // vision_cfg.enc_patch_size) ** 2
-        max_vision_tokens = (vision_cfg.max_crops + 1) * patches_per_crop
+        max_vision_tokens = self._vision_batch_capacity * patches_per_crop
         from kestrel.ops.fused_mlp import preallocate_fused_mlp_workspaces
         preallocate_fused_mlp_workspaces(
             max_num_tokens=max_vision_tokens,
@@ -2815,7 +2896,7 @@ class MoondreamRuntime:
     def _allocate_vision_buffers(self) -> None:
         """Allocate stable buffers for vision encoder."""
         config = self.config.vision
-        max_batch = config.max_crops + 1  # Support up to max_crops + 1
+        max_batch = self._vision_batch_capacity
         patches = (config.crop_size // config.enc_patch_size) ** 2  # 729
 
         self._vision_input = torch.zeros(
@@ -2830,9 +2911,14 @@ class MoondreamRuntime:
     def _encode_native_vision_crops(self, crops: Tensor) -> Tensor:
         """Run the retained non-Hopper tower selected during initialization."""
         batch_size = crops.shape[0]
+        if batch_size > self._vision_input.shape[0]:
+            raise ValueError("crop batch exceeds allocated vision capacity")
         self._vision_input[:batch_size].copy_(crops)
-        if batch_size in self._vision_graphs:
-            self._vision_graphs[batch_size].replay()
+        graph_size = next((size for size in sorted(self._vision_graphs)
+                           if size >= batch_size), None)
+        if graph_size is not None:
+            self._vision_input[batch_size:graph_size].zero_()
+            self._vision_graphs[graph_size].replay()
         else:
             out = vision_encoder(
                 self._vision_input[:batch_size],
@@ -2848,7 +2934,15 @@ class MoondreamRuntime:
             return
 
         config = self.config.vision
-        max_batch = config.max_crops + 1
+        max_batch = self._vision_batch_capacity
+        # Keep exact single-image shapes; use sparse larger buckets instead of
+        # retaining a graph/workspace specialization for every possible count.
+        buckets = set(range(1, config.max_crops + 2))
+        size = 16
+        while size < max_batch:
+            buckets.add(size)
+            size *= 2
+        buckets.add(max_batch)
 
         with self.graph_capture_lock:
             torch.cuda.synchronize(device=self.device)
@@ -2856,7 +2950,7 @@ class MoondreamRuntime:
             # Capture largest batch first, then hint smaller captures to reuse
             # its graph memory pool. This lowers peak graph-reserved memory.
             shared_pool = None
-            for batch_size in range(max_batch, 0, -1):
+            for batch_size in sorted(buckets, reverse=True):
                 graph = torch.cuda.CUDAGraph()
 
                 with torch.inference_mode():

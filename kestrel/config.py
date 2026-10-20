@@ -188,7 +188,18 @@ class RuntimeConfig:
     # CPU.
     cpu_threads: int | None = None
 
+    # Bound cross-request native vision work independently of request capacity.
+    # None preserves per-image encoding and its existing graph/workspace shapes.
+    moondream_vision_batch_crops: int | None = None
+    moondream_prefill_token_floor: int = 2048
+
     def __post_init__(self):
+        for name in ("moondream_vision_batch_crops", "moondream_prefill_token_floor"):
+            value = getattr(self, name)
+            if name == "moondream_vision_batch_crops" and value is None:
+                continue
+            if type(value) is not int or value < 1:
+                raise ValueError(f"{name} must be a positive integer")
         if self.draft_model_path is not None:
             from kestrel.models import get_spec
 
