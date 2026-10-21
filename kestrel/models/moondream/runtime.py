@@ -507,6 +507,8 @@ class MoondreamRuntime:
         self.generated_decode = None
         self._cfg = cfg
         self.device = cfg.resolved_device()
+        from .attention_policy import validate_attention_policy
+        validate_attention_policy(self.device)
         self.execution_shape = ExecutionShape.AUTOREGRESSIVE
         # Speculative decoding is not wired for Moondream; decode one token per
         # step as before. See kestrel.runtime.spec / the spec-decode design doc.

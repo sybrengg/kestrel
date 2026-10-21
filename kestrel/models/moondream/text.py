@@ -181,6 +181,7 @@ def attn(
             aux_tensors=aux_tensors,
             k_scale=k_scale,
             v_scale=v_scale,
+            **({"allow_persistent_split": False} if q.is_cuda else {}),
         )
     else:
         out, _ = runtime.attention.flash_attn_fwd(
@@ -194,6 +195,7 @@ def attn(
             causal=True,
             k_scale=k_scale,
             v_scale=v_scale,
+            **({"allow_persistent_split": False} if q.is_cuda else {}),
         )
 
     out = out.view(bsz, q_len, d_model)

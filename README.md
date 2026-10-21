@@ -318,6 +318,24 @@ print(seg["bbox"])      # {"x_min": ..., "y_min": ..., "x_max": ..., "y_max": ..
 
 Note: Segmentation requires Moondream 3 and separate model weights. Contact [moondream.ai](https://moondream.ai) for access.
 
+## Moondream captured paged-attention policy
+
+Moondream's CUDA paged attention explicitly passes `allow_persistent_split=False`
+for both prefill and decode. This keeps CUDA graph capture from independently
+selecting the persistent-split reduction. CUDA graphs and request batching stay
+enabled. CPU and MPS backends retain their existing call signatures. Other
+sources of floating-point variation (projection shape, MoE and cached versus
+full prefill) are unaffected, so this is not full-model bitwise determinism.
+
+This change must land with the companion `kestrel-kernels` wrapper update that
+exposes `allow_persistent_split` (default `True` for compatibility with other
+callers). An unpatched CUDA wrapper is rejected before Moondream weight loading.
+The current dependency pin, 0.7.5, needs to be replaced with the maintainer's
+release containing that update before merge; no such release number is assumed
+by this review branch. For local review, apply the supplied wrapper patch to an
+isolated 0.7.5 install. The Python selector patch does not change compiled kernel
+arithmetic.
+
 ## Streaming
 
 For longer responses, you can stream tokens as they're generated:
