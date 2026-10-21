@@ -161,6 +161,7 @@ def test_hopper_lifecycle_does_not_recapture_native_vision():
     backend = SimpleNamespace(close=lambda: closed.append(("backend", True)))
     runtime = MoondreamRuntime.__new__(MoondreamRuntime)
     runtime._vision_backend = backend
+    runtime._nvfp4_vision = None
     runtime._image_preprocessor = preprocessor
     runtime._use_cuda_graphs = True
     runtime.graph_capture_lock = threading.RLock()

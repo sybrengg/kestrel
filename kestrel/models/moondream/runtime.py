@@ -813,6 +813,11 @@ class MoondreamRuntime:
             device=self.device,
             dtype=self.dtype,
         )
+        self._nvfp4_vision = None
+        if cfg.moondream_vision_precision == "nvfp4":
+            from .vision_nvfp4 import NVFP4VisionEncoder
+
+            self._nvfp4_vision = NVFP4VisionEncoder(self.model.vision, self.config.vision, self.device)
         self.seg_refiner = (
             SegmentRefiner(self.model.vision, self.config.vision, self.device)
             if self._vision_backend is None and _HAS_SEG_DEPS
@@ -939,7 +944,7 @@ class MoondreamRuntime:
             device=self.device,
         )
 
-        if self._vision_backend is None:
+        if self._vision_backend is None and self._nvfp4_vision is None:
             self._preallocate_workspaces()
 
         if self._use_cuda_graphs:
@@ -2862,10 +2867,16 @@ class MoondreamRuntime:
         before invoking this method.
         """
 
-        if not self._use_cuda_graphs:
-            return
-
         with self.graph_capture_lock:
+            # Re-quantize after callers mutate/tie vision weights, even in eager
+            # mode. Clear captures before releasing their quantized weights.
+            if self._nvfp4_vision is not None:
+                from .vision_nvfp4 import NVFP4VisionEncoder
+
+                self._vision_graphs = {}
+                self._nvfp4_vision = NVFP4VisionEncoder(self.model.vision, self.config.vision, self.device)
+            if not self._use_cuda_graphs:
+                return
             if torch.cuda.is_available() and self.device.type == "cuda":
                 torch.cuda.set_device(self.device)
 
@@ -2924,23 +2935,29 @@ class MoondreamRuntime:
             dtype=self.dtype, device=self.device
         )
 
+    def _run_vision_tower(self, crops: Tensor) -> Tensor:
+        if self._nvfp4_vision is not None:
+            return self._nvfp4_vision(crops)
+        return vision_encoder(crops, self.model.vision, self.config.vision)
+
     def _encode_native_vision_crops(self, crops: Tensor) -> Tensor:
         """Run the retained non-Hopper tower selected during initialization."""
         batch_size = crops.shape[0]
         if batch_size > self._vision_input.shape[0]:
             raise ValueError("crop batch exceeds allocated vision capacity")
         self._vision_input[:batch_size].copy_(crops)
-        graph_size = next((size for size in sorted(self._vision_graphs)
-                           if size >= batch_size), None)
+        if self._nvfp4_vision is not None:
+            # Padding runs synthetic crops through the tower, affecting the
+            # shared activation scale. Never use an oversized NVFP4 graph.
+            graph_size = batch_size if batch_size in self._vision_graphs else None
+        else:
+            graph_size = next((size for size in sorted(self._vision_graphs)
+                               if size >= batch_size), None)
         if graph_size is not None:
             self._vision_input[batch_size:graph_size].zero_()
             self._vision_graphs[graph_size].replay()
         else:
-            out = vision_encoder(
-                self._vision_input[:batch_size],
-                self.model.vision,
-                self.config.vision,
-            )
+            out = self._run_vision_tower(self._vision_input[:batch_size])
             self._vision_output[:batch_size].copy_(out)
         return self._vision_output[:batch_size]
 
@@ -2973,21 +2990,16 @@ class MoondreamRuntime:
 
                 with torch.inference_mode():
                     # Warmup
-                    out = vision_encoder(
-                        self._vision_input[:batch_size],
-                        self.model.vision,
-                        config,
-                    )
+                    # FlashInfer/torch.compile initialize outside capture.
+                    warmups = 2 if self._nvfp4_vision is not None else 1
+                    for _ in range(warmups):
+                        out = self._run_vision_tower(self._vision_input[:batch_size])
                     self._vision_output[:batch_size].copy_(out)
                     torch.cuda.synchronize(device=self.device)
 
                     # Capture
                     with torch.cuda.graph(graph, pool=shared_pool):
-                        out = vision_encoder(
-                            self._vision_input[:batch_size],
-                            self.model.vision,
-                            config,
-                        )
+                        out = self._run_vision_tower(self._vision_input[:batch_size])
                         self._vision_output[:batch_size].copy_(out)
 
                 if shared_pool is None:

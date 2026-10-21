@@ -10,6 +10,7 @@ from kestrel.models.moondream import runtime as module
 def make_runtime():
     runtime = module.MoondreamRuntime.__new__(module.MoondreamRuntime)
     runtime._vision_backend = None
+    runtime._nvfp4_vision = None
     runtime._batch_vision = True
     runtime.device = torch.device('cpu')
     runtime.dtype = torch.float32

@@ -192,8 +192,16 @@ class RuntimeConfig:
     # None preserves per-image encoding and its existing graph/workspace shapes.
     moondream_vision_batch_crops: int | None = None
     moondream_prefill_token_floor: int = 2048
+    # Optional vision-only quantization; native preserves the shipped backend.
+    moondream_vision_precision: str = "native"
 
     def __post_init__(self):
+        if self.moondream_vision_precision not in ("native", "nvfp4"):
+            raise ValueError("moondream_vision_precision must be 'native' or 'nvfp4'")
+        if self.moondream_vision_precision == "nvfp4":
+            from kestrel.models.moondream.vision_nvfp4 import validate_nvfp4
+
+            validate_nvfp4(self.model, torch.device(self.device), self.dtype)
         for name in ("moondream_vision_batch_crops", "moondream_prefill_token_floor"):
             value = getattr(self, name)
             if name == "moondream_vision_batch_crops" and value is None:

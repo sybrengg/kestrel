@@ -364,6 +364,41 @@ comparison must be evaluated independently from the experimental invariant
 execution patch. Cross-request gathering does not guarantee a throughput gain;
 additional padding and copies can offset fewer tower launches.
 
+## Optional NVFP4 Moondream vision encoder
+
+Install `pip install "kestrel[nvfp4]"` and set
+`RuntimeConfig(model="moondream3.1-9B-A2B", moondream_vision_precision="nvfp4")`
+to quantize the vision tower's 108 QKV, output and MLP linears. This initial
+option supports CUDA BF16 on SM120 (tested hardware: RTX 5090). Other models,
+dtypes and devices fail explicitly. The optional stack is FlashInfer 0.7.2,
+CUTLASS DSL 4.8.1 and PyTorch 2.11; the measured environment uses CUDA 12.8.
+The quantizer uses CuTe DSL and the FP4 matrix multiply uses cuDNN.
+
+`moondream_vision_precision="native"` is the default and neither loads the
+optional dependencies nor changes existing encoder selection. NVFP4 can be
+combined with `moondream_vision_batch_crops=32`. These values count crops;
+`max_batch_size` still counts requests. Quantized weights are prepared once
+from the loaded checkpoint. Original weights remain available, so this does
+not promise a smaller resident model. Layer norms, vision attention, residuals,
+patch embedding, multimodal projection and the text model retain their original
+precision. Activation scales are dynamic and shared within each crop launch;
+changing companion crops may change a result.
+
+Graphs use exact crop counts through 32. If no exact NVFP4 graph exists, the
+runtime executes that crop count eagerly rather than padding to a larger graph
+and altering the quantization scale. Disabling CUDA graphs is supported.
+`rebuild_cuda_graphs()` also requantizes changed vision weights, including when
+graphs are disabled; pause all work before calling it. The encoder does not
+change process-wide deterministic or uninitialized-memory settings.
+
+The integrated option was checked on an RTX 5090 at its fixed 600 W limit: all crop counts 1–32 matched the
+prototype exactly with graphs on/off, and 390 mixed/cache request checks passed
+across the native and NVFP4 configurations. On the earlier 64-image panel, two
+repeats at request concurrency 32 measured 21.76 → 26.31 images/s (+20.9%) with
+both attention-policy and vision changes applied. At IoU ≥ 0.5 there were seven
+regressions and six improvements among 128 paired observations. These are small,
+previously inspected samples; evaluate the tradeoff on representative inputs.
+
 ## Streaming
 
 For longer responses, you can stream tokens as they're generated:
