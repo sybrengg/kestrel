@@ -334,8 +334,11 @@ cfg = RuntimeConfig(
 The default `moondream_vision_batch_crops=None` retains per-image encoding and
 its existing graph/workspace shapes. A positive capacity enables cross-request
 crop batches; the effective capacity is at least the model's maximum crops per
-image. Tower workspaces use that capacity, while gathered inputs and features
-scale with the admitted request batch. Outputs are copied before graph-buffer
+image. Full crop groups launch as images become ready, allowing later CPU image
+preparation to overlap GPU execution. A partial group's crops carry over to the
+next image, preserving the same launch boundaries and numerical operations as
+gathering every image first. Tower workspaces use the configured capacity;
+feature storage scales with the admitted request batch. Outputs are copied before graph-buffer
 reuse, then reconstructed from each image's own crop interval. CUDA graphs keep
 exact crop counts through 32 so, for example, 27 gathered crops execute 27 rather
 than 32 crops. Larger capacities use sparse buckets to bound graph count.

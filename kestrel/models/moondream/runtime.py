@@ -1541,7 +1541,7 @@ class MoondreamRuntime:
         """Encode crops across requests using the existing bounded vision buffers.
 
         The native tower's batch dimension is independent crops. Gather crops
-        before launching it, then restore each image's exact crop interval before
+        into full groups as images become ready, then restore each image's crop interval before
         reconstruction/projection. Clone graph outputs before replay overwrites
         their storage. Tower workspaces stay bounded by moondream_vision_batch_crops;
         gathered inputs/features scale with the admitted launch batch.
@@ -1557,6 +1557,10 @@ class MoondreamRuntime:
 
         with torch.inference_mode():
             prepared = []
+            pending = []
+            pending_count = 0
+            feature_chunks = []
+            capacity = int(self._vision_input.shape[0])
             for image, overlap in zip(images, overlaps):
                 if overlap is not None:
                     item = prepare_crops_from_overlap(overlap, self.device, self.dtype)
@@ -1565,17 +1569,29 @@ class MoondreamRuntime:
                         raise ValueError("image or overlap is required")
                     item = prepare_crops(decode_to_srgb(image), self.config.vision,
                                          self.device, self.dtype)
-                prepared.append(item)
-            capacity = int(self._vision_input.shape[0])
-            crops = torch.cat([item[0] for item in prepared], dim=0)
-            features = torch.cat([
-                self._encode_native_vision_crops(crops[start:start + capacity]).clone()
-                for start in range(0, len(crops), capacity)
-            ], dim=0)
+                image_crops, tiling = item
+                prepared.append((len(image_crops), tiling))
+                pending.append(image_crops)
+                pending_count += len(image_crops)
+                if pending_count >= capacity:
+                    # Submit full groups now, allowing later CPU image preparation
+                    # to overlap tower execution. Keep the same crop boundaries as
+                    # concatenating every image first, including cross-image tails.
+                    crops = torch.cat(pending, dim=0) if len(pending) > 1 else pending[0]
+                    while len(crops) >= capacity:
+                        feature_chunks.append(
+                            self._encode_native_vision_crops(crops[:capacity]).clone())
+                        crops = crops[capacity:]
+                    pending = [crops] if len(crops) else []
+                    pending_count = len(crops)
+            if pending:
+                crops = torch.cat(pending, dim=0) if len(pending) > 1 else pending[0]
+                feature_chunks.append(self._encode_native_vision_crops(crops).clone())
+            features = torch.cat(feature_chunks, dim=0)
             outputs = []
             start = 0
-            for image_crops, tiling in prepared:
-                end = start + len(image_crops)
+            for crop_count, tiling in prepared:
+                end = start + crop_count
                 outputs.append(self._project_vision_crops(features[start:end], tiling))
                 start = end
             return outputs

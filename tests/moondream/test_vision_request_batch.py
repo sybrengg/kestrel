@@ -24,10 +24,15 @@ def test_encoder_batches_across_images_and_copies_replayed_storage(monkeypatch):
     overlaps = [dict(values=[10., 11.], tiling=(1, 1)),
                 dict(values=[20., 21., 22.], tiling=(1, 2)),
                 dict(values=[30., 31.], tiling=(1, 1))]
-    monkeypatch.setattr(module, 'prepare_crops_from_overlap',
-                        lambda item, *_: (torch.tensor(item['values']).view(-1, 1), item['tiling']))
     shared = torch.empty(4, 1)
     launches = []
+    def prepare(item, *_):
+        if item is overlaps[-1]:
+            # A full group must start before preparing later images: otherwise
+            # CPU decoding/cropping serializes ahead of all GPU tower work.
+            assert launches, "full crop groups must not wait for every image"
+        return torch.tensor(item['values']).view(-1, 1), item['tiling']
+    monkeypatch.setattr(module, 'prepare_crops_from_overlap', prepare)
     def encode(crops):
         launches.append(crops.flatten().tolist())
         shared[:len(crops)].copy_(crops)
