@@ -334,7 +334,11 @@ The current dependency pin, 0.7.5, needs to be replaced with the maintainer's
 release containing that update before merge; no such release number is assumed
 by this review branch. For local review, apply the supplied wrapper patch to an
 isolated 0.7.5 install. The Python selector patch does not change compiled kernel
-arithmetic.
+arithmetic. An RTX 5090 reproduction changes from two graph/eager output
+mismatches to zero with this policy. The integrated caller check also exercised
+prefill, decode, cache pressure and mixed image requests, observing only ordinary
+paged-prefill/decode dispatch. This controls that selector; it does not claim that
+all Moondream outputs become identical across batch sizes.
 
 ## Streaming
 
