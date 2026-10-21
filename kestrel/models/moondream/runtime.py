@@ -2935,14 +2935,16 @@ class MoondreamRuntime:
 
         config = self.config.vision
         max_batch = self._vision_batch_capacity
-        # Keep exact single-image shapes; use sparse larger buckets instead of
-        # retaining a graph/workspace specialization for every possible count.
+        # Keep exact crop counts through 32: padding a common 27-crop prefill
+        # to 32 can cost more than cross-request gathering saves. Larger
+        # capacities retain sparse buckets to bound graph specialization count.
         buckets = set(range(1, config.max_crops + 2))
         size = 16
         while size < max_batch:
             buckets.add(size)
             size *= 2
         buckets.add(max_batch)
+        buckets.update(range(config.max_crops + 2, min(max_batch, 32) + 1))
 
         with self.graph_capture_lock:
             torch.cuda.synchronize(device=self.device)

@@ -336,14 +336,20 @@ its existing graph/workspace shapes. A positive capacity enables cross-request
 crop batches; the effective capacity is at least the model's maximum crops per
 image. Tower workspaces use that capacity, while gathered inputs and features
 scale with the admitted request batch. Outputs are copied before graph-buffer
-reuse, then reconstructed from each image's own crop interval. Cache hits and
-text-only requests do not enter the image encoder. The separate Hopper/SigLIP
+reuse, then reconstructed from each image's own crop interval. CUDA graphs keep
+exact crop counts through 32 so, for example, 27 gathered crops execute 27 rather
+than 32 crops. Larger capacities use sparse buckets to bound graph count.
+Cache hits and text-only requests do not enter the image encoder. The separate Hopper/SigLIP
 backend retains its per-image path.
 
 `moondream_prefill_token_floor` defaults to 2048, preserving scheduler behavior.
 Increasing it may admit more images into one prefill, but also increases text
 activation and expert workspace memory. Request slots and KV pages remain hard
 limits. Concurrent requests are not necessarily one equally large prefill.
+Request capacity 32 also needs enough KV pages: the measured roughly 740-token
+image prompts need about 23700 pages; the 32-request test uses 24576 pages.
+This is separate from the vision crop capacity; a 32-request decode batch can
+still be fed by several smaller prefills.
 On our shared 32 GiB RTX 5090, a 16384-token target already exhausts the native
 control's 19.13 GiB allocator allowance; do not treat that target as a universally
 safe setting.

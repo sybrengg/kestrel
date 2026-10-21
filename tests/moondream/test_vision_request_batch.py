@@ -107,3 +107,42 @@ def test_invalid_capacity_rejected_before_model_download(value):
     from kestrel.config import RuntimeConfig
     with pytest.raises(ValueError, match='moondream_vision_batch_crops'):
         RuntimeConfig(device='cpu', moondream_vision_batch_crops=value)
+
+
+def test_common_gathered_crop_count_uses_exact_graph_without_padded_work(monkeypatch):
+    from contextlib import contextmanager, nullcontext
+    runtime = make_runtime()
+    runtime._use_cuda_graphs = True
+    runtime._vision_batch_capacity = 32
+    runtime.config = SimpleNamespace(vision=SimpleNamespace(max_crops=12))
+    runtime.model = SimpleNamespace(vision=object())
+    runtime.graph_capture_lock = nullcontext()
+    runtime._vision_input = torch.zeros(32, 1)
+    runtime._vision_output = torch.zeros(32, 1)
+    runtime._vision_graphs = {}
+    active = []
+    captured = {}
+    class Graph:
+        def pool(self): return None
+        def replay(self): active.append(captured[id(self)])
+    @contextmanager
+    def capture(graph, **_):
+        active.append(graph)
+        try:
+            yield
+        finally:
+            active.pop()
+    def encoder(crops, *_):
+        if active and isinstance(active[-1], Graph):
+            captured[id(active[-1])] = len(crops)
+        return crops
+    monkeypatch.setattr(torch.cuda, 'CUDAGraph', Graph)
+    monkeypatch.setattr(torch.cuda, 'graph', capture)
+    monkeypatch.setattr(torch.cuda, 'synchronize', lambda **_: None)
+    monkeypatch.setattr(module, 'vision_encoder', encoder)
+    runtime._capture_vision_graphs()
+    active.clear()
+    # Three ordinary nine-crop images should not execute five padded crops.
+    runtime._encode_native_vision_crops(torch.ones(27, 1))
+    assert active == [27]
+    assert max(runtime._vision_graphs) == 32
