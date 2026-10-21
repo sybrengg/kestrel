@@ -1,0 +1,371 @@
+{
+  "mixed-native-v2": {
+    "encoder_comparisons": 272,
+    "max_relative_l2": 0.0,
+    "chat_requests": 96,
+    "cache_pressure_requests": 26,
+    "evictions": [
+      {
+        "needed": 80,
+        "result": 765
+      },
+      {
+        "needed": 60,
+        "result": 748
+      },
+      {
+        "needed": 58,
+        "result": 746
+      },
+      {
+        "needed": 58,
+        "result": 745
+      },
+      {
+        "needed": 58,
+        "result": 747
+      },
+      {
+        "needed": 63,
+        "result": 752
+      },
+      {
+        "needed": 60,
+        "result": 751
+      },
+      {
+        "needed": 61,
+        "result": 749
+      },
+      {
+        "needed": 65,
+        "result": 751
+      },
+      {
+        "needed": 68,
+        "result": 751
+      },
+      {
+        "needed": 62,
+        "result": 745
+      },
+      {
+        "needed": 74,
+        "result": 746
+      },
+      {
+        "needed": 73,
+        "result": 746
+      },
+      {
+        "needed": 75,
+        "result": 745
+      },
+      {
+        "needed": 79,
+        "result": 752
+      }
+    ],
+    "errors": 0,
+    "feature_outputs_nonexact": 0,
+    "evicted_pages": 11239,
+    "eviction_calls": 15,
+    "evicted_image_reencoded": true,
+    "immediate_repeat_skips_encoder": true,
+    "timings": [
+      {
+        "images": 1,
+        "repeats": 2,
+        "batched_wall_s": 0.02711433172225952,
+        "individual_wall_s": 0.02711433172225952,
+        "speedup": 1.0,
+        "crop_launches": [
+          [
+            9
+          ],
+          [
+            2
+          ]
+        ]
+      },
+      {
+        "images": 2,
+        "repeats": 2,
+        "batched_wall_s": 0.04995305649936199,
+        "individual_wall_s": 0.04995305649936199,
+        "speedup": 1.0,
+        "crop_launches": [
+          [
+            9,
+            9
+          ],
+          [
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "images": 4,
+        "repeats": 2,
+        "batched_wall_s": 0.10943023394793272,
+        "individual_wall_s": 0.10943023394793272,
+        "speedup": 1.0,
+        "crop_launches": [
+          [
+            9,
+            9,
+            9,
+            9
+          ],
+          [
+            2,
+            2,
+            2,
+            9
+          ]
+        ]
+      },
+      {
+        "images": 8,
+        "repeats": 2,
+        "batched_wall_s": 0.18952182587236166,
+        "individual_wall_s": 0.18952182587236166,
+        "speedup": 1.0,
+        "crop_launches": [
+          [
+            9,
+            9,
+            9,
+            9,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            9,
+            9,
+            9,
+            9,
+            2
+          ]
+        ]
+      },
+      {
+        "images": 16,
+        "repeats": 2,
+        "batched_wall_s": 0.37563168071210384,
+        "individual_wall_s": 0.37563168071210384,
+        "speedup": 1.0,
+        "crop_launches": [
+          [
+            9,
+            9,
+            9,
+            9,
+            2,
+            2,
+            2,
+            2,
+            9,
+            9,
+            9,
+            9,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            9,
+            9,
+            9,
+            9,
+            2,
+            2,
+            2,
+            2,
+            9,
+            9,
+            9,
+            9,
+            2
+          ]
+        ]
+      }
+    ],
+    "allocated_gib_range": [
+      12.140418529510498,
+      12.18461275100708
+    ]
+  },
+  "mixed-vision-v2": {
+    "encoder_comparisons": 272,
+    "max_relative_l2": 0.0032472822349518538,
+    "chat_requests": 96,
+    "cache_pressure_requests": 26,
+    "evictions": [
+      {
+        "needed": 80,
+        "result": 765
+      },
+      {
+        "needed": 60,
+        "result": 748
+      },
+      {
+        "needed": 58,
+        "result": 746
+      },
+      {
+        "needed": 58,
+        "result": 745
+      },
+      {
+        "needed": 58,
+        "result": 747
+      },
+      {
+        "needed": 63,
+        "result": 752
+      },
+      {
+        "needed": 60,
+        "result": 751
+      },
+      {
+        "needed": 61,
+        "result": 749
+      },
+      {
+        "needed": 65,
+        "result": 751
+      },
+      {
+        "needed": 68,
+        "result": 751
+      },
+      {
+        "needed": 62,
+        "result": 745
+      },
+      {
+        "needed": 74,
+        "result": 746
+      },
+      {
+        "needed": 73,
+        "result": 746
+      },
+      {
+        "needed": 75,
+        "result": 745
+      },
+      {
+        "needed": 79,
+        "result": 752
+      }
+    ],
+    "errors": 0,
+    "feature_outputs_nonexact": 1,
+    "evicted_pages": 11239,
+    "eviction_calls": 15,
+    "evicted_image_reencoded": true,
+    "immediate_repeat_skips_encoder": true,
+    "timings": [
+      {
+        "images": 1,
+        "repeats": 2,
+        "batched_wall_s": 0.027001162990927696,
+        "individual_wall_s": 0.02652278169989586,
+        "speedup": 0.9822829375463357,
+        "crop_launches": [
+          [
+            9
+          ],
+          [
+            2
+          ]
+        ]
+      },
+      {
+        "images": 2,
+        "repeats": 2,
+        "batched_wall_s": 0.07287411112338305,
+        "individual_wall_s": 0.049994952976703644,
+        "speedup": 0.6860454584764302,
+        "crop_launches": [
+          [
+            18
+          ],
+          [
+            4
+          ]
+        ]
+      },
+      {
+        "images": 4,
+        "repeats": 2,
+        "batched_wall_s": 0.10805144067853689,
+        "individual_wall_s": 0.10962291527539492,
+        "speedup": 1.014543763479594,
+        "crop_launches": [
+          [
+            32,
+            4
+          ],
+          [
+            15
+          ]
+        ]
+      },
+      {
+        "images": 8,
+        "repeats": 2,
+        "batched_wall_s": 0.18625287245959044,
+        "individual_wall_s": 0.1892679976299405,
+        "speedup": 1.0161883418523074,
+        "crop_launches": [
+          [
+            32,
+            12
+          ],
+          [
+            32,
+            12
+          ]
+        ]
+      },
+      {
+        "images": 16,
+        "repeats": 2,
+        "batched_wall_s": 0.3908509174361825,
+        "individual_wall_s": 0.3753665629774332,
+        "speedup": 0.960382965043756,
+        "crop_launches": [
+          [
+            32,
+            32,
+            24
+          ],
+          [
+            32,
+            32,
+            24
+          ]
+        ]
+      }
+    ],
+    "allocated_gib_range": [
+      12.296350002288818,
+      12.339905738830566
+    ]
+  }
+}

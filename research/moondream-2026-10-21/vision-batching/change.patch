@@ -1,0 +1,573 @@
+diff --git a/README.md b/README.md
+index 9d0b363..91eee1d 100644
+--- a/README.md
++++ b/README.md
+@@ -318,6 +318,52 @@ print(seg["bbox"])      # {"x_min": ..., "y_min": ..., "x_max": ..., "y_max": ..
+ 
+ Note: Segmentation requires Moondream 3 and separate model weights. Contact [moondream.ai](https://moondream.ai) for access.
+ 
++## Batched Moondream image encoding
++
++The native Moondream vision path can gather crops from several requests admitted
++in the same prefill launch. Enable it explicitly:
++
++```python
++cfg = RuntimeConfig(
++    model="moondream3.1-9B-A2B",
++    max_batch_size=16,
++    moondream_vision_batch_crops=32,
++)
++```
++
++The default `moondream_vision_batch_crops=None` retains per-image encoding and
++its existing graph/workspace shapes. A positive capacity enables cross-request
++crop batches; the effective capacity is at least the model's maximum crops per
++image. Full crop groups launch as images become ready, allowing later CPU image
++preparation to overlap GPU execution. A partial group's crops carry over to the
++next image, preserving the same launch boundaries and numerical operations as
++gathering every image first. Tower workspaces use the configured capacity;
++feature storage scales with the admitted request batch. Outputs are copied before graph-buffer
++reuse, then reconstructed from each image's own crop interval. CUDA graphs keep
++exact crop counts through 32 so, for example, 27 gathered crops execute 27 rather
++than 32 crops. Larger capacities use sparse buckets to bound graph count.
++Cache hits and text-only requests do not enter the image encoder. The separate Hopper/SigLIP
++backend retains its per-image path.
++
++`moondream_prefill_token_floor` defaults to 2048, preserving scheduler behavior.
++Increasing it may admit more images into one prefill, but also increases text
++activation and expert workspace memory. Request slots and KV pages remain hard
++limits. Concurrent requests are not necessarily one equally large prefill.
++Request capacity 32 also needs enough KV pages: the measured roughly 740-token
++image prompts need about 23700 pages; the 32-request test uses 24576 pages.
++This is separate from the vision crop capacity; a 32-request decode batch can
++still be fed by several smaller prefills.
++On our shared 32 GiB RTX 5090, a 16384-token target already exhausts the native
++control's 19.13 GiB allocator allowance; do not treat that target as a universally
++safe setting.
++
++This change does not replace attention, projections or expert kernels. Native
++BF16 computations can vary with batch shape; image ownership and bounded buffer
++reuse do not imply bitwise full-model invariance. The performance and output
++comparison must be evaluated independently from the experimental invariant
++execution patch. Cross-request gathering does not guarantee a throughput gain;
++additional padding and copies can offset fewer tower launches.
++
+ ## Streaming
+ 
+ For longer responses, you can stream tokens as they're generated:
+diff --git a/kestrel/config.py b/kestrel/config.py
+index 9fed1c5..07f2a9a 100644
+--- a/kestrel/config.py
++++ b/kestrel/config.py
+@@ -188,7 +188,18 @@ class RuntimeConfig:
+     # CPU.
+     cpu_threads: int | None = None
+ 
++    # Bound cross-request native vision work independently of request capacity.
++    # None preserves per-image encoding and its existing graph/workspace shapes.
++    moondream_vision_batch_crops: int | None = None
++    moondream_prefill_token_floor: int = 2048
++
+     def __post_init__(self):
++        for name in ("moondream_vision_batch_crops", "moondream_prefill_token_floor"):
++            value = getattr(self, name)
++            if name == "moondream_vision_batch_crops" and value is None:
++                continue
++            if type(value) is not int or value < 1:
++                raise ValueError(f"{name} must be a positive integer")
+         if self.draft_model_path is not None:
+             from kestrel.models import get_spec
+ 
+diff --git a/kestrel/models/moondream/runtime.py b/kestrel/models/moondream/runtime.py
+index bcf0d98..3e62e53 100644
+--- a/kestrel/models/moondream/runtime.py
++++ b/kestrel/models/moondream/runtime.py
+@@ -506,6 +506,7 @@ class MoondreamRuntime:
+         self.decode_path = getattr(cfg, "decode_path", "auto")
+         self.generated_decode = None
+         self._cfg = cfg
++        self.prefill_launch_token_floor = cfg.moondream_prefill_token_floor
+         self.device = cfg.resolved_device()
+         self.execution_shape = ExecutionShape.AUTOREGRESSIVE
+         # Speculative decoding is not wired for Moondream; decode one token per
+@@ -518,6 +519,10 @@ class MoondreamRuntime:
+ 
+         self._spec = get_spec(cfg.model)
+         self.config = MoondreamConfig.from_dict(deepcopy(self._spec.default_config))
++        self._batch_vision = cfg.moondream_vision_batch_crops is not None
++        self._vision_batch_capacity = max(
++            self.config.vision.max_crops + 1, cfg.moondream_vision_batch_crops or 0,
++        )
+ 
+         self._kv_layer_k_scales: list[float] | None = None
+         self._kv_layer_v_scales: list[float] | None = None
+@@ -1511,27 +1516,109 @@ class MoondreamRuntime:
+                 return self._vision_backend.encode_crops(crops, tiling)
+             outputs = self._encode_native_vision_crops(crops)
+ 
+-            # Rest unchanged: projection, reconstruction
+-            global_features = outputs[0]
+-            local = outputs[1:].reshape(
+-                -1,
+-                self.config.vision.enc_n_layers,
+-                self.config.vision.enc_n_layers,
+-                self.config.vision.enc_dim,
+-            )
+-            reconstructed = reconstruct_from_crops(
+-                local.to(dtype=torch.float32),
+-                tiling,
+-                overlap_margin=self.config.vision.overlap_margin,
+-                patch_size=1,
+-            )
+-            reconstructed = reconstructed.to(device=self.device, dtype=outputs.dtype)
+-            return vision_projection(
+-                global_features,
+-                reconstructed,
+-                self.model.vision,
+-                self.config.vision,
+-            )
++            return self._project_vision_crops(outputs, tiling)
++
++    def _project_vision_crops(self, outputs: Tensor, tiling: tuple[int, int]) -> Tensor:
++        """Reconstruct one image only; never mix crops from different requests."""
++        global_features = outputs[0]
++        local = outputs[1:].reshape(
++            -1, self.config.vision.enc_n_layers,
++            self.config.vision.enc_n_layers, self.config.vision.enc_dim,
++        )
++        reconstructed = reconstruct_from_crops(
++            local.to(dtype=torch.float32), tiling,
++            overlap_margin=self.config.vision.overlap_margin, patch_size=1,
++        ).to(device=self.device, dtype=outputs.dtype)
++        return vision_projection(
++            global_features, reconstructed, self.model.vision, self.config.vision,
++        )
++
++    def encode_images(
++        self,
++        images: Sequence[Optional[np.ndarray]],
++        overlaps: Sequence[Optional[OverlapCropOutput]],
++    ) -> list[Tensor]:
++        """Encode crops across requests using the existing bounded vision buffers.
++
++        The native tower's batch dimension is independent crops. Gather crops
++        into full groups as images become ready, then restore each image's crop interval before
++        reconstruction/projection. Clone graph outputs before replay overwrites
++        their storage. Tower workspaces stay bounded by moondream_vision_batch_crops;
++        gathered inputs/features scale with the admitted launch batch.
++        """
++        if len(images) != len(overlaps):
++            raise ValueError("images and overlaps must have the same length")
++        if not images:
++            return []
++        if len(images) == 1 or self._vision_backend is not None:
++            return [self.encode_image(image, overlap=overlap).clone()
++                    for image, overlap in zip(images, overlaps)]
++        from kestrel.utils.image import decode_to_srgb
++
++        with torch.inference_mode():
++            prepared = []
++            pending = []
++            pending_count = 0
++            feature_chunks = []
++            capacity = int(self._vision_input.shape[0])
++            for image, overlap in zip(images, overlaps):
++                if overlap is not None:
++                    item = prepare_crops_from_overlap(overlap, self.device, self.dtype)
++                else:
++                    if image is None:
++                        raise ValueError("image or overlap is required")
++                    item = prepare_crops(decode_to_srgb(image), self.config.vision,
++                                         self.device, self.dtype)
++                image_crops, tiling = item
++                prepared.append((len(image_crops), tiling))
++                pending.append(image_crops)
++                pending_count += len(image_crops)
++                if pending_count >= capacity:
++                    # Submit full groups now, allowing later CPU image preparation
++                    # to overlap tower execution. Keep the same crop boundaries as
++                    # concatenating every image first, including cross-image tails.
++                    crops = torch.cat(pending, dim=0) if len(pending) > 1 else pending[0]
++                    while len(crops) >= capacity:
++                        feature_chunks.append(
++                            self._encode_native_vision_crops(crops[:capacity]).clone())
++                        crops = crops[capacity:]
++                    pending = [crops] if len(crops) else []
++                    pending_count = len(crops)
++            if pending:
++                crops = torch.cat(pending, dim=0) if len(pending) > 1 else pending[0]
++                feature_chunks.append(self._encode_native_vision_crops(crops).clone())
++            features = torch.cat(feature_chunks, dim=0)
++            outputs = []
++            start = 0
++            for crop_count, tiling in prepared:
++                end = start + crop_count
++                outputs.append(self._project_vision_crops(features[start:end], tiling))
++                start = end
++            return outputs
++
++    def _encode_prefill_images(self, prepared_sequences, images, overlaps):
++        """Gather only cache misses; keep row and multi-image index ownership."""
++        pending_images, pending_overlaps, owners = [], [], []
++        result = [None] * len(prepared_sequences)
++        if not self._batch_vision:
++            return result
++        for row, (prepared, image, overlap) in enumerate(
++            zip(prepared_sequences, images, overlaps)
++        ):
++            if image is None and overlap is None:
++                continue
++            if prepared.cache_result.can_reuse:
++                continue
++            row_images = list(image) if isinstance(image, (list, tuple)) else [image]
++            result[row] = [None] * len(row_images)
++            for index, item in enumerate(row_images):
++                pending_images.append(item)
++                pending_overlaps.append(overlap if len(row_images) == 1 else None)
++                owners.append((row, index))
++        encoded = self.encode_images(pending_images, pending_overlaps)
++        for (row, index), features in zip(owners, encoded):
++            result[row][index] = features
++        return result
+ 
+     # ------------------------------------------------------------------
+     # Prefill preparation helpers
+@@ -1743,6 +1830,7 @@ class MoondreamRuntime:
+         *,
+         staging: PrefillInputStaging,
+         row: int,
++        encoded_images: Sequence[Tensor] | None = None,
+     ) -> tuple[Tensor, int, Optional[Tensor]]:
+         """Prepare inputs for full prefill (cache-miss path).
+ 
+@@ -1775,7 +1863,8 @@ class MoondreamRuntime:
+                     segments.append(seg)
+                     block_ids.extend([-1] * int(seg.shape[1]))
+                 marker = tokens_list[mpos]
+-                seg = self.encode_image(images[marker.index]).unsqueeze(0)
++                seg = (encoded_images[marker.index] if encoded_images is not None
++                       else self.encode_image(images[marker.index])).unsqueeze(0)
+                 segments.append(seg)
+                 block_ids.extend([marker.index] * int(seg.shape[1]))
+                 cursor = mpos + 1
+@@ -1797,7 +1886,8 @@ class MoondreamRuntime:
+                 segments.append(prompt_embed[:, :1, :])  # BOS
+                 block_ids.append(-1)
+             if has_image:
+-                seg = self.encode_image(image, overlap=image_crops).unsqueeze(0)
++                seg = (encoded_images[0] if encoded_images is not None
++                       else self.encode_image(image, overlap=image_crops)).unsqueeze(0)
+                 segments.append(seg)
+                 block_ids.extend([0] * int(seg.shape[1]))
+             if prompt_embed is not None and len(tokens_list) > 1:
+@@ -2030,6 +2120,7 @@ class MoondreamRuntime:
+         image_crops: Optional[OverlapCropOutput],
+         staging: PrefillInputStaging,
+         row: int,
++        encoded_images: Sequence[Tensor] | None = None,
+     ) -> tuple[Tensor, int, bool]:
+         """Build per-sequence prefill inputs for a prepared sequence."""
+         tokens_list = prepared.tokens_list
+@@ -2068,6 +2159,7 @@ class MoondreamRuntime:
+                     prompt_len,
+                     staging=staging,
+                     row=row,
++                    encoded_images=encoded_images,
+                 )
+             )
+ 
+@@ -2120,6 +2212,9 @@ class MoondreamRuntime:
+         # Keep all GPU work on the compute stream so all callers share identical
+         # ordering semantics.
+         with stream_context(self._compute_stream):
++            encoded_rows = self._encode_prefill_images(
++                prepared_sequences, images, image_crops_list,
++            )
+             per_inputs: list[Tensor] = []
+             position_starts: list[int] = []
+             per_block_ids: list[Optional[Tensor]] = []
+@@ -2134,6 +2229,8 @@ class MoondreamRuntime:
+                         image_crops=image_crops,
+                         staging=input_staging,
+                         row=row,
++                        **({"encoded_images": encoded_rows[row]}
++                           if encoded_rows[row] is not None else {}),
+                     )
+                 )
+                 if inputs_embeds.shape[1] == 0:
+@@ -2799,7 +2896,7 @@ class MoondreamRuntime:
+         # The +1 accounts for the global/overview crop added by overlap_crop_image
+         vision_cfg = self.config.vision
+         patches_per_crop = (vision_cfg.crop_size // vision_cfg.enc_patch_size) ** 2
+-        max_vision_tokens = (vision_cfg.max_crops + 1) * patches_per_crop
++        max_vision_tokens = self._vision_batch_capacity * patches_per_crop
+         from kestrel.ops.fused_mlp import preallocate_fused_mlp_workspaces
+         preallocate_fused_mlp_workspaces(
+             max_num_tokens=max_vision_tokens,
+@@ -2815,7 +2912,7 @@ class MoondreamRuntime:
+     def _allocate_vision_buffers(self) -> None:
+         """Allocate stable buffers for vision encoder."""
+         config = self.config.vision
+-        max_batch = config.max_crops + 1  # Support up to max_crops + 1
++        max_batch = self._vision_batch_capacity
+         patches = (config.crop_size // config.enc_patch_size) ** 2  # 729
+ 
+         self._vision_input = torch.zeros(
+@@ -2830,9 +2927,14 @@ class MoondreamRuntime:
+     def _encode_native_vision_crops(self, crops: Tensor) -> Tensor:
+         """Run the retained non-Hopper tower selected during initialization."""
+         batch_size = crops.shape[0]
++        if batch_size > self._vision_input.shape[0]:
++            raise ValueError("crop batch exceeds allocated vision capacity")
+         self._vision_input[:batch_size].copy_(crops)
+-        if batch_size in self._vision_graphs:
+-            self._vision_graphs[batch_size].replay()
++        graph_size = next((size for size in sorted(self._vision_graphs)
++                           if size >= batch_size), None)
++        if graph_size is not None:
++            self._vision_input[batch_size:graph_size].zero_()
++            self._vision_graphs[graph_size].replay()
+         else:
+             out = vision_encoder(
+                 self._vision_input[:batch_size],
+@@ -2848,7 +2950,17 @@ class MoondreamRuntime:
+             return
+ 
+         config = self.config.vision
+-        max_batch = config.max_crops + 1
++        max_batch = self._vision_batch_capacity
++        # Keep exact crop counts through 32: padding a common 27-crop prefill
++        # to 32 can cost more than cross-request gathering saves. Larger
++        # capacities retain sparse buckets to bound graph specialization count.
++        buckets = set(range(1, config.max_crops + 2))
++        size = 16
++        while size < max_batch:
++            buckets.add(size)
++            size *= 2
++        buckets.add(max_batch)
++        buckets.update(range(config.max_crops + 2, min(max_batch, 32) + 1))
+ 
+         with self.graph_capture_lock:
+             torch.cuda.synchronize(device=self.device)
+@@ -2856,7 +2968,7 @@ class MoondreamRuntime:
+             # Capture largest batch first, then hint smaller captures to reuse
+             # its graph memory pool. This lowers peak graph-reserved memory.
+             shared_pool = None
+-            for batch_size in range(max_batch, 0, -1):
++            for batch_size in sorted(buckets, reverse=True):
+                 graph = torch.cuda.CUDAGraph()
+ 
+                 with torch.inference_mode():
+diff --git a/kestrel/scheduler/scheduler.py b/kestrel/scheduler/scheduler.py
+index 7c2de68..124d9bb 100644
+--- a/kestrel/scheduler/scheduler.py
++++ b/kestrel/scheduler/scheduler.py
+@@ -1807,7 +1807,8 @@ class GenerationScheduler:
+             capacity_remaining=capacity_remaining,
+             slot_budget=slot_budget,
+             page_budget=page_budget,
+-            token_floor=_MIN_PREFILL_LAUNCH_TOKENS,
++            token_floor=getattr(self.runtime, "prefill_launch_token_floor",
++                                _MIN_PREFILL_LAUNCH_TOKENS),
+         )
+ 
+     def _acquire_prefill_staging(self) -> PrefillStaging:
+diff --git a/tests/moondream/test_runtime_prefill.py b/tests/moondream/test_runtime_prefill.py
+index ace0c3c..6c106e6 100644
+--- a/tests/moondream/test_runtime_prefill.py
++++ b/tests/moondream/test_runtime_prefill.py
+@@ -34,6 +34,7 @@ def _make_runtime(seq_lens: dict[int, int]) -> tuple[runtime_mod.MoondreamRuntim
+     captured: dict = {}
+     runtime = runtime_mod.MoondreamRuntime.__new__(runtime_mod.MoondreamRuntime)
+     runtime.max_batch_size = 8
++    runtime._batch_vision = False
+     runtime.device = torch.device("cpu")
+     runtime.dtype = torch.float32
+     runtime.bos_embed = torch.empty(1, 4)
+diff --git a/tests/moondream/test_vision_request_batch.py b/tests/moondream/test_vision_request_batch.py
+new file mode 100644
+index 0000000..1ba71de
+--- /dev/null
++++ b/tests/moondream/test_vision_request_batch.py
+@@ -0,0 +1,153 @@
++"""Request ownership and shared-graph buffer regression tests (CPU)."""
++from types import SimpleNamespace
++
++import pytest
++import torch
++
++from kestrel.models.moondream import runtime as module
++
++
++def make_runtime():
++    runtime = module.MoondreamRuntime.__new__(module.MoondreamRuntime)
++    runtime._vision_backend = None
++    runtime._batch_vision = True
++    runtime.device = torch.device('cpu')
++    runtime.dtype = torch.float32
++    runtime._vision_input = torch.empty(4, 1)
++    return runtime
++
++
++def test_encoder_batches_across_images_and_copies_replayed_storage(monkeypatch):
++    runtime = make_runtime()
++    # The second image crosses the graph-launch boundary. The encoder deliberately
++    # returns a shared output buffer that the next invocation overwrites.
++    overlaps = [dict(values=[10., 11.], tiling=(1, 1)),
++                dict(values=[20., 21., 22.], tiling=(1, 2)),
++                dict(values=[30., 31.], tiling=(1, 1))]
++    shared = torch.empty(4, 1)
++    launches = []
++    def prepare(item, *_):
++        if item is overlaps[-1]:
++            # A full group must start before preparing later images: otherwise
++            # CPU decoding/cropping serializes ahead of all GPU tower work.
++            assert launches, "full crop groups must not wait for every image"
++        return torch.tensor(item['values']).view(-1, 1), item['tiling']
++    monkeypatch.setattr(module, 'prepare_crops_from_overlap', prepare)
++    def encode(crops):
++        launches.append(crops.flatten().tolist())
++        shared[:len(crops)].copy_(crops)
++        return shared[:len(crops)]
++    runtime._encode_native_vision_crops = encode
++    runtime._project_vision_crops = lambda features, tiling: (features.clone(), tiling)
++    outputs = runtime.encode_images([None]*3, overlaps)
++    assert launches == [[10., 11., 20., 21.], [22., 30., 31.]]
++    for result, source in zip(outputs, overlaps):
++        assert result[0].flatten().tolist() == source['values']
++        assert result[1] == source['tiling']
++
++
++def test_prefill_gather_excludes_cache_hits_and_keeps_multi_image_ownership():
++    runtime = make_runtime()
++    prepared = [SimpleNamespace(cache_result=SimpleNamespace(can_reuse=v))
++                for v in [False, True, False, False]]
++    a, b, c, cached = object(), object(), object(), object()
++    captured = {}
++    def encode(images, overlaps):
++        captured.update(images=images, overlaps=overlaps)
++        return ['a-features', 'b-features', 'c-features']
++    runtime.encode_images = encode
++    result = runtime._encode_prefill_images(
++        prepared, [a, cached, [b, c], None], ['a-crops', None, None, None])
++    assert captured == dict(images=[a, b, c], overlaps=['a-crops', None, None])
++    assert result == [['a-features'], None, ['b-features', 'c-features'], None]
++
++
++def test_empty_and_invalid_batches():
++    runtime = make_runtime()
++    assert runtime.encode_images([], []) == []
++    with pytest.raises(ValueError, match='same length'):
++        runtime.encode_images([None], [])
++
++
++def test_default_does_not_gather_or_change_legacy_image_path():
++    from kestrel.config import RuntimeConfig
++    assert RuntimeConfig(device="cpu", model_path="unused").moondream_vision_batch_crops is None
++    runtime = make_runtime()
++    runtime._batch_vision = False
++    runtime.encode_images = lambda *_: pytest.fail("default must retain legacy path")
++    assert runtime._encode_prefill_images([object()], [object()], [None]) == [None]
++
++
++def test_backend_without_crop_batch_api_retains_owned_image_outputs():
++    runtime = make_runtime()
++    runtime._vision_backend = object()
++    buffer = torch.empty(2)
++    def encode(image, *, overlap):
++        buffer.fill_(image)
++        return buffer
++    runtime.encode_image = encode
++    result = runtime.encode_images([10, 20], [None, None])
++    assert result[0].tolist() == [10, 10]
++    assert result[1].tolist() == [20, 20]
++
++
++def test_graph_bucket_padding_does_not_reuse_stale_crops():
++    runtime = make_runtime()
++    runtime._vision_input = torch.full((4, 1), 99.)
++    runtime._vision_output = torch.empty(4, 1)
++    seen = []
++    def replay():
++        seen.append(runtime._vision_input.clone())
++        runtime._vision_output.copy_(runtime._vision_input * 2)
++    runtime._vision_graphs = {4: SimpleNamespace(replay=replay)}
++    result = runtime._encode_native_vision_crops(torch.tensor([[1.], [2.], [3.]]))
++    assert result.flatten().tolist() == [2., 4., 6.]
++    assert seen[0].flatten().tolist() == [1., 2., 3., 0.]
++    with pytest.raises(ValueError, match='capacity'):
++        runtime._encode_native_vision_crops(torch.ones(5, 1))
++
++
++@pytest.mark.parametrize('value', [0, -1, True, 1.5])
++def test_invalid_capacity_rejected_before_model_download(value):
++    from kestrel.config import RuntimeConfig
++    with pytest.raises(ValueError, match='moondream_vision_batch_crops'):
++        RuntimeConfig(device='cpu', moondream_vision_batch_crops=value)
++
++
++def test_common_gathered_crop_count_uses_exact_graph_without_padded_work(monkeypatch):
++    from contextlib import contextmanager, nullcontext
++    runtime = make_runtime()
++    runtime._use_cuda_graphs = True
++    runtime._vision_batch_capacity = 32
++    runtime.config = SimpleNamespace(vision=SimpleNamespace(max_crops=12))
++    runtime.model = SimpleNamespace(vision=object())
++    runtime.graph_capture_lock = nullcontext()
++    runtime._vision_input = torch.zeros(32, 1)
++    runtime._vision_output = torch.zeros(32, 1)
++    runtime._vision_graphs = {}
++    active = []
++    captured = {}
++    class Graph:
++        def pool(self): return None
++        def replay(self): active.append(captured[id(self)])
++    @contextmanager
++    def capture(graph, **_):
++        active.append(graph)
++        try:
++            yield
++        finally:
++            active.pop()
++    def encoder(crops, *_):
++        if active and isinstance(active[-1], Graph):
++            captured[id(active[-1])] = len(crops)
++        return crops
++    monkeypatch.setattr(torch.cuda, 'CUDAGraph', Graph)
++    monkeypatch.setattr(torch.cuda, 'graph', capture)
++    monkeypatch.setattr(torch.cuda, 'synchronize', lambda **_: None)
++    monkeypatch.setattr(module, 'vision_encoder', encoder)
++    runtime._capture_vision_graphs()
++    active.clear()
++    # Three ordinary nine-crop images should not execute five padded crops.
++    runtime._encode_native_vision_crops(torch.ones(27, 1))
++    assert active == [27]
++    assert max(runtime._vision_graphs) == 32
+diff --git a/tests/scheduler/test_prefill_planner.py b/tests/scheduler/test_prefill_planner.py
+index 43e9bac..31a7433 100644
+--- a/tests/scheduler/test_prefill_planner.py
++++ b/tests/scheduler/test_prefill_planner.py
+@@ -269,3 +269,23 @@ def test_prefill_planner_keeps_zero_token_prefill_isolated():
+     )
+ 
+     assert [candidate.request.request_id for candidate in batch] == [1]
++
++
++def test_runtime_prefill_target_batches_images_without_bypassing_page_budget():
++    from types import SimpleNamespace
++    from kestrel.scheduler.scheduler import GenerationScheduler
++    scheduler = GenerationScheduler.__new__(GenerationScheduler)
++    candidates = [_candidate(
++        i, submitted_at=float(i), prompt_length=740, skip_positions=0,
++        can_reuse=False, use_prefix_attn=True, pages_needed=740,
++        cohort_key=(None, bytes([i])),
++    ) for i in range(16)]
++    scheduler.waiting = list(range(16))
++    scheduler._make_prefill_candidate = lambda i: candidates[i]
++    scheduler.runtime = SimpleNamespace(prefill_budget=lambda: (12000,16))
++    assert len(scheduler._select_prefill_batch(16)) == 3
++    scheduler.runtime.prefill_launch_token_floor = 16384
++    assert len(scheduler._select_prefill_batch(16)) == 16
++    scheduler.runtime.prefill_budget = lambda: (2220,16)
++    assert len(scheduler._select_prefill_batch(16)) == 3
++    assert len(scheduler._select_prefill_batch(2)) == 2

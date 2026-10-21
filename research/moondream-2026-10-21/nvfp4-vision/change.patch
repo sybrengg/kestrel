@@ -1,0 +1,470 @@
+diff --git a/README.md b/README.md
+index 91eee1d..b8dd74b 100644
+--- a/README.md
++++ b/README.md
+@@ -364,6 +364,41 @@ comparison must be evaluated independently from the experimental invariant
+ execution patch. Cross-request gathering does not guarantee a throughput gain;
+ additional padding and copies can offset fewer tower launches.
+ 
++## Optional NVFP4 Moondream vision encoder
++
++Install `pip install "kestrel[nvfp4]"` and set
++`RuntimeConfig(model="moondream3.1-9B-A2B", moondream_vision_precision="nvfp4")`
++to quantize the vision tower's 108 QKV, output and MLP linears. This initial
++option supports CUDA BF16 on SM120 (tested hardware: RTX 5090). Other models,
++dtypes and devices fail explicitly. The optional stack is FlashInfer 0.7.2,
++CUTLASS DSL 4.8.1 and PyTorch 2.11; the measured environment uses CUDA 12.8.
++The quantizer uses CuTe DSL and the FP4 matrix multiply uses cuDNN.
++
++`moondream_vision_precision="native"` is the default and neither loads the
++optional dependencies nor changes existing encoder selection. NVFP4 can be
++combined with `moondream_vision_batch_crops=32`. These values count crops;
++`max_batch_size` still counts requests. Quantized weights are prepared once
++from the loaded checkpoint. Original weights remain available, so this does
++not promise a smaller resident model. Layer norms, vision attention, residuals,
++patch embedding, multimodal projection and the text model retain their original
++precision. Activation scales are dynamic and shared within each crop launch;
++changing companion crops may change a result.
++
++Graphs use exact crop counts through 32. If no exact NVFP4 graph exists, the
++runtime executes that crop count eagerly rather than padding to a larger graph
++and altering the quantization scale. Disabling CUDA graphs is supported.
++`rebuild_cuda_graphs()` also requantizes changed vision weights, including when
++graphs are disabled; pause all work before calling it. The encoder does not
++change process-wide deterministic or uninitialized-memory settings.
++
++The integrated option was checked on an RTX 5090 at its fixed 600 W limit: all crop counts 1–32 matched the
++prototype exactly with graphs on/off, and 390 mixed/cache request checks passed
++across the native and NVFP4 configurations. On the earlier 64-image panel, two
++repeats at request concurrency 32 measured 21.76 → 26.31 images/s (+20.9%) with
++both attention-policy and vision changes applied. At IoU ≥ 0.5 there were seven
++regressions and six improvements among 128 paired observations. These are small,
++previously inspected samples; evaluate the tradeoff on representative inputs.
++
+ ## Streaming
+ 
+ For longer responses, you can stream tokens as they're generated:
+diff --git a/kestrel/config.py b/kestrel/config.py
+index 07f2a9a..3f57734 100644
+--- a/kestrel/config.py
++++ b/kestrel/config.py
+@@ -192,8 +192,16 @@ class RuntimeConfig:
+     # None preserves per-image encoding and its existing graph/workspace shapes.
+     moondream_vision_batch_crops: int | None = None
+     moondream_prefill_token_floor: int = 2048
++    # Optional vision-only quantization; native preserves the shipped backend.
++    moondream_vision_precision: str = "native"
+ 
+     def __post_init__(self):
++        if self.moondream_vision_precision not in ("native", "nvfp4"):
++            raise ValueError("moondream_vision_precision must be 'native' or 'nvfp4'")
++        if self.moondream_vision_precision == "nvfp4":
++            from kestrel.models.moondream.vision_nvfp4 import validate_nvfp4
++
++            validate_nvfp4(self.model, torch.device(self.device), self.dtype)
+         for name in ("moondream_vision_batch_crops", "moondream_prefill_token_floor"):
+             value = getattr(self, name)
+             if name == "moondream_vision_batch_crops" and value is None:
+diff --git a/kestrel/models/moondream/runtime.py b/kestrel/models/moondream/runtime.py
+index 3e62e53..12fd2ad 100644
+--- a/kestrel/models/moondream/runtime.py
++++ b/kestrel/models/moondream/runtime.py
+@@ -813,6 +813,11 @@ class MoondreamRuntime:
+             device=self.device,
+             dtype=self.dtype,
+         )
++        self._nvfp4_vision = None
++        if cfg.moondream_vision_precision == "nvfp4":
++            from .vision_nvfp4 import NVFP4VisionEncoder
++
++            self._nvfp4_vision = NVFP4VisionEncoder(self.model.vision, self.config.vision, self.device)
+         self.seg_refiner = (
+             SegmentRefiner(self.model.vision, self.config.vision, self.device)
+             if self._vision_backend is None and _HAS_SEG_DEPS
+@@ -939,7 +944,7 @@ class MoondreamRuntime:
+             device=self.device,
+         )
+ 
+-        if self._vision_backend is None:
++        if self._vision_backend is None and self._nvfp4_vision is None:
+             self._preallocate_workspaces()
+ 
+         if self._use_cuda_graphs:
+@@ -2862,10 +2867,16 @@ class MoondreamRuntime:
+         before invoking this method.
+         """
+ 
+-        if not self._use_cuda_graphs:
+-            return
+-
+         with self.graph_capture_lock:
++            # Re-quantize after callers mutate/tie vision weights, even in eager
++            # mode. Clear captures before releasing their quantized weights.
++            if self._nvfp4_vision is not None:
++                from .vision_nvfp4 import NVFP4VisionEncoder
++
++                self._vision_graphs = {}
++                self._nvfp4_vision = NVFP4VisionEncoder(self.model.vision, self.config.vision, self.device)
++            if not self._use_cuda_graphs:
++                return
+             if torch.cuda.is_available() and self.device.type == "cuda":
+                 torch.cuda.set_device(self.device)
+ 
+@@ -2924,23 +2935,29 @@ class MoondreamRuntime:
+             dtype=self.dtype, device=self.device
+         )
+ 
++    def _run_vision_tower(self, crops: Tensor) -> Tensor:
++        if self._nvfp4_vision is not None:
++            return self._nvfp4_vision(crops)
++        return vision_encoder(crops, self.model.vision, self.config.vision)
++
+     def _encode_native_vision_crops(self, crops: Tensor) -> Tensor:
+         """Run the retained non-Hopper tower selected during initialization."""
+         batch_size = crops.shape[0]
+         if batch_size > self._vision_input.shape[0]:
+             raise ValueError("crop batch exceeds allocated vision capacity")
+         self._vision_input[:batch_size].copy_(crops)
+-        graph_size = next((size for size in sorted(self._vision_graphs)
+-                           if size >= batch_size), None)
++        if self._nvfp4_vision is not None:
++            # Padding runs synthetic crops through the tower, affecting the
++            # shared activation scale. Never use an oversized NVFP4 graph.
++            graph_size = batch_size if batch_size in self._vision_graphs else None
++        else:
++            graph_size = next((size for size in sorted(self._vision_graphs)
++                               if size >= batch_size), None)
+         if graph_size is not None:
+             self._vision_input[batch_size:graph_size].zero_()
+             self._vision_graphs[graph_size].replay()
+         else:
+-            out = vision_encoder(
+-                self._vision_input[:batch_size],
+-                self.model.vision,
+-                self.config.vision,
+-            )
++            out = self._run_vision_tower(self._vision_input[:batch_size])
+             self._vision_output[:batch_size].copy_(out)
+         return self._vision_output[:batch_size]
+ 
+@@ -2973,21 +2990,16 @@ class MoondreamRuntime:
+ 
+                 with torch.inference_mode():
+                     # Warmup
+-                    out = vision_encoder(
+-                        self._vision_input[:batch_size],
+-                        self.model.vision,
+-                        config,
+-                    )
++                    # FlashInfer/torch.compile initialize outside capture.
++                    warmups = 2 if self._nvfp4_vision is not None else 1
++                    for _ in range(warmups):
++                        out = self._run_vision_tower(self._vision_input[:batch_size])
+                     self._vision_output[:batch_size].copy_(out)
+                     torch.cuda.synchronize(device=self.device)
+ 
+                     # Capture
+                     with torch.cuda.graph(graph, pool=shared_pool):
+-                        out = vision_encoder(
+-                            self._vision_input[:batch_size],
+-                            self.model.vision,
+-                            config,
+-                        )
++                        out = self._run_vision_tower(self._vision_input[:batch_size])
+                         self._vision_output[:batch_size].copy_(out)
+ 
+                 if shared_pool is None:
+diff --git a/kestrel/models/moondream/vision_nvfp4.py b/kestrel/models/moondream/vision_nvfp4.py
+new file mode 100644
+index 0000000..37d939b
+--- /dev/null
++++ b/kestrel/models/moondream/vision_nvfp4.py
+@@ -0,0 +1,116 @@
++"""Opt-in NVFP4 linears for the Moondream 3.1 vision tower on SM120.
++
++Only QKV, attention output and MLP projections are quantized. The original
++weights remain owned by the model; this is a throughput option, not a model
++compression format. Imports and compilation are deferred until selected.
++"""
++
++from importlib import import_module
++
++import torch
++import torch.nn.functional as F
++
++from kestrel.device import get_device_capability
++
++
++def _load_flashinfer():
++    try:
++        flashinfer = import_module("flashinfer")
++        import_module("cutlass")
++    except ImportError as exc:
++        raise RuntimeError(
++            'NVFP4 vision requires the optional dependencies: pip install "kestrel[nvfp4]"'
++        ) from exc
++    return flashinfer.nvfp4_quantize, flashinfer.mm_fp4
++
++
++def validate_nvfp4(model: str, device: torch.device, dtype: torch.dtype) -> None:
++    """Reject unsupported requests before downloading/loading weights."""
++    if model != "moondream3.1-9B-A2B":
++        raise ValueError("NVFP4 vision currently supports moondream3.1-9B-A2B")
++    if device.type != "cuda" or dtype != torch.bfloat16:
++        raise ValueError("NVFP4 vision requires CUDA and bfloat16")
++    if tuple(get_device_capability(device)) != (12, 0):
++        raise ValueError("NVFP4 vision currently supports SM120 (RTX 5090)")
++    _load_flashinfer()
++
++
++def _activation_scale(x: torch.Tensor) -> torch.Tensor:
++    # 448 (FP8 block scale) * 6 (FP4 value). Keep reduction in BF16 as
++    # in the measured prototype, then promote its scalar to FP32.
++    return 2688 / x.abs().amax().float().clamp_min(1e-12)
++
++
++class NVFP4Linear:
++    def __init__(self, layer, quantize, matmul, activation_scale):
++        self.n, self.k = layer.weight.shape
++        self.bias = layer.bias
++        self.kpad = (-self.k) % 64
++        weight = F.pad(layer.weight, (0, self.kpad, 0, (-self.n) % 64)).contiguous()
++        self.weight_scale = 2688 / weight.float().abs().amax().clamp_min(1e-12)
++        self.weight, self.block_scales = quantize(
++            weight, self.weight_scale, backend="cute-dsl", nvfp4_4over6=None,
++        )
++        self.quantize = quantize
++        self.matmul = matmul
++        self.activation_scale = activation_scale
++
++    def __call__(self, x: torch.Tensor) -> torch.Tensor:
++        shape = x.shape
++        x = x.reshape(-1, self.k)
++        a = F.pad(x, (0, self.kpad)).contiguous() if self.kpad else x.contiguous()
++        scale = self.activation_scale(a)
++        values, blocks = self.quantize(
++            a, scale, backend="cute-dsl", nvfp4_4over6=None,
++        )
++        y = self.matmul(
++            values, self.weight.t(), blocks, self.block_scales.t(),
++            1 / (scale * self.weight_scale), out_dtype=torch.bfloat16,
++            backend="cudnn",
++        )[:, :self.n]
++        if self.bias is not None:
++            y = y + self.bias
++        return y.reshape(*shape[:-1], self.n)
++
++
++class NVFP4VisionEncoder:
++    @torch.no_grad()
++    def __init__(self, vision, config, device: torch.device):
++        from kestrel_kernels import get_runtime
++
++        quantize, matmul = _load_flashinfer()
++        scale = torch.compile(_activation_scale, fullgraph=True, dynamic=True)
++        self.vision = vision
++        self.config = config
++        self.backend = get_runtime(device)
++        self.blocks = [
++            {name: NVFP4Linear(layer, quantize, matmul, scale)
++             for name, layer in (("qkv", block.attn["qkv"]),
++                                 ("proj", block.attn["proj"]),
++                                 ("fc1", block.mlp["fc1"]),
++                                 ("fc2", block.mlp["fc2"]))}
++            for block in vision.blocks
++        ]
++
++    def __call__(self, crops: torch.Tensor) -> torch.Tensor:
++        from .vision import create_patches
++
++        model, config = self.vision, self.config
++        x = model.patch_emb(create_patches(crops, config.enc_patch_size)) + model.pos_emb
++        norm = torch.empty_like(x)
++
++        def layernorm(value, module):
++            self.backend.dense.layernorm_bias_into(
++                norm, value, module.weight, module.bias, float(module.eps),
++            )
++            return norm
++
++        for block, quant in zip(model.blocks, self.blocks):
++            q, k, v = quant["qkv"](layernorm(x, block.ln1)).chunk(3, dim=-1)
++            shape = (*x.shape[:2], config.enc_n_heads, config.enc_dim // config.enc_n_heads)
++            attention, _ = self.backend.attention.flash_attn_fwd(
++                q.view(shape), k.view(shape), v.view(shape), causal=False,
++            )
++            x = x + quant["proj"](attention.reshape_as(x))
++            x = x + quant["fc2"](F.gelu(quant["fc1"](layernorm(x, block.ln2)), approximate="tanh"))
++        return layernorm(x, model.post_ln)
+diff --git a/pyproject.toml b/pyproject.toml
+index 32be6ee..3093828 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -18,6 +18,13 @@ dependencies = [
+     "pillow>=10",
+ ]
+ 
++[project.optional-dependencies]
++nvfp4 = [
++    "torch>=2.11",
++    "flashinfer-python==0.7.2",
++    "nvidia-cutlass-dsl==4.8.1",
++]
++
+ [tool.setuptools.packages.find]
+ include = ["kestrel", "kestrel.*"]
+ exclude = ["tests", "tests.*"]
+diff --git a/tests/moondream/test_siglip_backend.py b/tests/moondream/test_siglip_backend.py
+index f424f6a..f557468 100644
+--- a/tests/moondream/test_siglip_backend.py
++++ b/tests/moondream/test_siglip_backend.py
+@@ -161,6 +161,7 @@ def test_hopper_lifecycle_does_not_recapture_native_vision():
+     backend = SimpleNamespace(close=lambda: closed.append(("backend", True)))
+     runtime = MoondreamRuntime.__new__(MoondreamRuntime)
+     runtime._vision_backend = backend
++    runtime._nvfp4_vision = None
+     runtime._image_preprocessor = preprocessor
+     runtime._use_cuda_graphs = True
+     runtime.graph_capture_lock = threading.RLock()
+diff --git a/tests/moondream/test_vision_nvfp4.py b/tests/moondream/test_vision_nvfp4.py
+new file mode 100644
+index 0000000..dcade38
+--- /dev/null
++++ b/tests/moondream/test_vision_nvfp4.py
+@@ -0,0 +1,124 @@
++"""CPU contracts for optional NVFP4 dependencies, shapes and graph ownership.
++
++The arithmetic doubles below do not validate FP4 CUDA arithmetic; that is covered
++by the explicit GPU probe. They exercise padding, bias and runtime dispatch.
++"""
++from contextlib import nullcontext
++from types import SimpleNamespace
++
++import pytest
++import torch
++
++from kestrel.config import RuntimeConfig
++from kestrel.models.moondream import runtime as runtime_module
++from kestrel.models.moondream import vision_nvfp4 as nv
++from .test_vision_request_batch import make_runtime
++
++
++def test_native_default_does_not_load_optional_dependencies(monkeypatch):
++    monkeypatch.setattr(nv, "_load_flashinfer", lambda: pytest.fail("optional import"))
++    assert RuntimeConfig(device="cpu", model_path="unused").moondream_vision_precision == "native"
++
++
++@pytest.mark.parametrize("kwargs, message", [
++    ({"moondream_vision_precision": "fp4"}, "must be"),
++    ({"model": "moondream2"}, "supports moondream3.1"),
++    ({"device": "cpu"}, "CUDA and bfloat16"),
++    ({"dtype": torch.float16}, "CUDA and bfloat16"),
++])
++def test_invalid_option_fails_before_download(monkeypatch, kwargs, message):
++    from kestrel import model_download
++    monkeypatch.setattr(model_download, "ensure_model_weights", lambda *_: pytest.fail("download"))
++    options = dict(model="moondream3.1-9B-A2B", device="cuda", moondream_vision_precision="nvfp4")
++    options.update(kwargs)
++    with pytest.raises(ValueError, match=message):
++        RuntimeConfig(**options)
++
++
++def test_unsupported_hardware_does_not_import_flashinfer(monkeypatch):
++    monkeypatch.setattr(nv, "get_device_capability", lambda *_: (9, 0))
++    monkeypatch.setattr(nv, "_load_flashinfer", lambda: pytest.fail("optional import"))
++    with pytest.raises(ValueError, match="SM120"):
++        nv.validate_nvfp4("moondream3.1-9B-A2B", torch.device("cuda"), torch.bfloat16)
++
++
++def test_missing_extra_has_actionable_error(monkeypatch):
++    def missing(name):
++        raise ModuleNotFoundError(name)
++    monkeypatch.setattr(nv, "import_module", missing)
++    with pytest.raises(RuntimeError, match=r'kestrel\[nvfp4\]'):
++        nv._load_flashinfer()
++
++
++@pytest.mark.parametrize("k,n,bias", [(64, 64, False), (65, 67, True), (4304, 16, True)])
++def test_linear_pads_reduction_and_output_axes_then_restores_shape(k, n, bias):
++    torch.manual_seed(7)
++    layer = torch.nn.Linear(k, n, bias=bias, dtype=torch.float32)
++    shapes = []
++    def quantize(value, scale, **kwargs):
++        assert kwargs == dict(backend="cute-dsl", nvfp4_4over6=None)
++        shapes.append(tuple(value.shape))
++        # Reversible scale-only double: preserve the actual matrix orientation.
++        return value * scale, torch.ones(1, 1)
++    def matmul(a, b, sa, sb, alpha, **kwargs):
++        assert kwargs == dict(out_dtype=torch.bfloat16, backend="cudnn")
++        return (a @ b) * alpha
++    linear = nv.NVFP4Linear(layer, quantize, matmul, nv._activation_scale)
++    x = torch.randn(2, 3, k)
++    result = linear(x)
++    assert result.shape == (2, 3, n)
++    assert shapes == [(((n + 63) // 64) * 64, ((k + 63) // 64) * 64),
++                      (6, ((k + 63) // 64) * 64)]
++    torch.testing.assert_close(result, layer(x), atol=2e-6, rtol=2e-5)
++    assert torch.isfinite(nv._activation_scale(torch.zeros(2, k)))
++
++
++def test_nvfp4_graph_does_not_pad_or_replay_stale_crops():
++    runtime = make_runtime()
++    runtime._vision_output = torch.zeros(4, 1)
++    calls = []
++    def encoder(crops):
++        calls.append(crops.clone())
++        return crops * 2
++    runtime._nvfp4_vision = encoder
++    runtime._vision_graphs = {4: SimpleNamespace(replay=lambda: pytest.fail("padded graph"))}
++    result = runtime._encode_native_vision_crops(torch.tensor([[1.], [2.], [3.]]))
++    assert result.flatten().tolist() == [2., 4., 6.]
++    assert calls[0].shape == (3, 1)
++    runtime._vision_graphs[3] = SimpleNamespace(
++        replay=lambda: runtime._vision_output[:3].copy_(runtime._vision_input[:3] * 3))
++    result = runtime._encode_native_vision_crops(torch.tensor([[4.], [5.], [6.]]))
++    assert result.flatten().tolist() == [12., 15., 18.]
++    assert len(calls) == 1
++
++
++def test_eager_default_uses_original_tower(monkeypatch):
++    runtime = make_runtime()
++    runtime._vision_graphs = {}
++    runtime._vision_output = torch.empty(4, 1)
++    runtime.model = SimpleNamespace(vision=object())
++    runtime.config = SimpleNamespace(vision=object())
++    monkeypatch.setattr(runtime_module, "vision_encoder", lambda crops, *_: crops * 7)
++    assert runtime._encode_native_vision_crops(torch.ones(2, 1)).tolist() == [[7.], [7.]]
++
++
++@pytest.mark.parametrize("graphs", [False, True])
++def test_rebuild_requantizes_changed_weights_before_recapturing(monkeypatch, graphs):
++    runtime = make_runtime()
++    runtime._nvfp4_vision = object()
++    runtime._vision_graphs = {1: object()}
++    runtime._use_cuda_graphs = graphs
++    runtime.graph_capture_lock = nullcontext()
++    runtime.model = SimpleNamespace(vision=object())
++    runtime.config = SimpleNamespace(vision=object())
++    calls = []
++    def rebuild(*_):
++        assert not runtime._vision_graphs
++        calls.append("requantize")
++        return "new weights"
++    monkeypatch.setattr(nv, "NVFP4VisionEncoder", rebuild)
++    runtime._decode_graphs = SimpleNamespace(clear=lambda: calls.append("clear decode"))
++    runtime._ensure_cuda_graphs_ready = lambda: calls.append("decode")
++    runtime._capture_vision_graphs = lambda: calls.append(runtime._nvfp4_vision)
++    runtime.rebuild_cuda_graphs()
++    assert calls == (["requantize", "clear decode", "decode", "new weights"] if graphs else ["requantize"])
+diff --git a/tests/moondream/test_vision_request_batch.py b/tests/moondream/test_vision_request_batch.py
+index 1ba71de..68c496f 100644
+--- a/tests/moondream/test_vision_request_batch.py
++++ b/tests/moondream/test_vision_request_batch.py
+@@ -10,6 +10,7 @@ from kestrel.models.moondream import runtime as module
+ def make_runtime():
+     runtime = module.MoondreamRuntime.__new__(module.MoondreamRuntime)
+     runtime._vision_backend = None
++    runtime._nvfp4_vision = None
+     runtime._batch_vision = True
+     runtime.device = torch.device('cpu')
+     runtime.dtype = torch.float32

@@ -1,0 +1,868 @@
+{
+  "scope": "Frozen partially invariant runtime, same64 image panel, two orders. The module-local diagnostic excludes persistent dispatch; real wrapper patch tested separately.",
+  "runs": [
+    {
+      "tag": "projections-moe-native",
+      "source": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/projections-moe-native/complete.json",
+      "args": {
+        "invariant": 1,
+        "moe_capacity": 0,
+        "memory_fraction": 0.56,
+        "ops": "detect",
+        "vision_crops": 32,
+        "mode": "native",
+        "batch": 16,
+        "cache": 0,
+        "prefill_token_floor": 2048,
+        "kv_pages": 16384,
+        "repeats": 2
+      },
+      "phases": [
+        {
+          "phase": "detect-t0-c1",
+          "count": 64,
+          "changed": []
+        },
+        {
+          "phase": "detect-t0-c16",
+          "count": 64,
+          "changed": [
+            {
+              "id": "sequence-A:351",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41650390625,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47412109375,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.41796875,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47265625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:360",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.4163818359375,
+                    "y_min": 0.599609375,
+                    "x_max": 0.4664306640625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.4140625,
+                    "y_min": 0.599609375,
+                    "x_max": 0.46875,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:363",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41259765625,
+                    "y_min": 0.603515625,
+                    "x_max": 0.47021484375,
+                    "y_max": 0.669921875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.412109375,
+                    "y_min": 0.603515625,
+                    "x_max": 0.470703125,
+                    "y_max": 0.669921875
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:480",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.5841064453125,
+                    "x_max": 0.53515625,
+                    "y_max": 0.6268310546875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.58544921875,
+                    "x_max": 0.53515625,
+                    "y_max": 0.62548828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:627",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.575439453125,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.697998046875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.57275390625,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.70068359375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:24",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.62744140625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.77099609375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.7734375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:84",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60986328125,
+                    "x_max": 0.6484375,
+                    "y_max": 0.74951171875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60888671875,
+                    "x_max": 0.6484375,
+                    "y_max": 0.75048828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:234",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.318359375,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412109375,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.317626953125,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412841796875,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "phase": "detect-t1-c16",
+          "count": 64,
+          "changed": [
+            {
+              "id": "sequence-B:234",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.318359375,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412109375,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.317626953125,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412841796875,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:84",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60986328125,
+                    "x_max": 0.6484375,
+                    "y_max": 0.74951171875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60888671875,
+                    "x_max": 0.6484375,
+                    "y_max": 0.75048828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:24",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.62744140625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.77099609375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.7734375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:627",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.575439453125,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.697998046875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.57275390625,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.70068359375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:480",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.5841064453125,
+                    "x_max": 0.53515625,
+                    "y_max": 0.6268310546875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.58544921875,
+                    "x_max": 0.53515625,
+                    "y_max": 0.62548828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:363",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41259765625,
+                    "y_min": 0.603515625,
+                    "x_max": 0.47021484375,
+                    "y_max": 0.669921875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.412109375,
+                    "y_min": 0.603515625,
+                    "x_max": 0.470703125,
+                    "y_max": 0.669921875
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:360",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.4163818359375,
+                    "y_min": 0.599609375,
+                    "x_max": 0.4664306640625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.4140625,
+                    "y_min": 0.599609375,
+                    "x_max": 0.46875,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:351",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41650390625,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47412109375,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.41796875,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47265625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "phase": "detect-t1-c1",
+          "count": 64,
+          "changed": []
+        }
+      ]
+    },
+    {
+      "tag": "projections-moe-fixed4096",
+      "source": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/projections-moe-fixed4096/complete.json",
+      "args": {
+        "invariant": 1,
+        "moe_capacity": 4096,
+        "memory_fraction": 0.56,
+        "ops": "detect",
+        "vision_crops": 32,
+        "mode": "native",
+        "batch": 16,
+        "cache": 0,
+        "prefill_token_floor": 2048,
+        "kv_pages": 16384,
+        "repeats": 2
+      },
+      "phases": [
+        {
+          "phase": "detect-t0-c1",
+          "count": 64,
+          "changed": []
+        },
+        {
+          "phase": "detect-t0-c16",
+          "count": 64,
+          "changed": [
+            {
+              "id": "sequence-A:351",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41650390625,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47412109375,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.41796875,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47265625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:360",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.4163818359375,
+                    "y_min": 0.599609375,
+                    "x_max": 0.4664306640625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.4140625,
+                    "y_min": 0.599609375,
+                    "x_max": 0.46875,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:363",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41259765625,
+                    "y_min": 0.603515625,
+                    "x_max": 0.47021484375,
+                    "y_max": 0.669921875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.412109375,
+                    "y_min": 0.603515625,
+                    "x_max": 0.470703125,
+                    "y_max": 0.669921875
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:480",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.5841064453125,
+                    "x_max": 0.53515625,
+                    "y_max": 0.6268310546875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.58544921875,
+                    "x_max": 0.53515625,
+                    "y_max": 0.62548828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:627",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.575439453125,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.697998046875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.57275390625,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.70068359375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:24",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.62744140625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.77099609375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.7734375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:84",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60986328125,
+                    "x_max": 0.6484375,
+                    "y_max": 0.74951171875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60888671875,
+                    "x_max": 0.6484375,
+                    "y_max": 0.75048828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:234",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.318359375,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412109375,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.317626953125,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412841796875,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "phase": "detect-t1-c16",
+          "count": 64,
+          "changed": [
+            {
+              "id": "sequence-B:234",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.318359375,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412109375,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.317626953125,
+                    "y_min": 0.66259765625,
+                    "x_max": 0.412841796875,
+                    "y_max": 0.79052734375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:84",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60986328125,
+                    "x_max": 0.6484375,
+                    "y_max": 0.74951171875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.5546875,
+                    "y_min": 0.60888671875,
+                    "x_max": 0.6484375,
+                    "y_max": 0.75048828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-B:24",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.62744140625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.77099609375
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.45703125,
+                    "y_min": 0.625,
+                    "x_max": 0.55078125,
+                    "y_max": 0.7734375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:627",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.575439453125,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.697998046875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.2884521484375,
+                    "y_min": 0.57275390625,
+                    "x_max": 0.3404541015625,
+                    "y_max": 0.70068359375
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:480",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.5841064453125,
+                    "x_max": 0.53515625,
+                    "y_max": 0.6268310546875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.47265625,
+                    "y_min": 0.58544921875,
+                    "x_max": 0.53515625,
+                    "y_max": 0.62548828125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:363",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41259765625,
+                    "y_min": 0.603515625,
+                    "x_max": 0.47021484375,
+                    "y_max": 0.669921875
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.412109375,
+                    "y_min": 0.603515625,
+                    "x_max": 0.470703125,
+                    "y_max": 0.669921875
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:360",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.4163818359375,
+                    "y_min": 0.599609375,
+                    "x_max": 0.4664306640625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.4140625,
+                    "y_min": 0.599609375,
+                    "x_max": 0.46875,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sequence-A:351",
+              "serial": {
+                "objects": [
+                  {
+                    "x_min": 0.41650390625,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47412109375,
+                    "y_max": 0.658203125
+                  }
+                ]
+              },
+              "observed": {
+                "objects": [
+                  {
+                    "x_min": 0.41796875,
+                    "y_min": 0.591796875,
+                    "x_max": 0.47265625,
+                    "y_max": 0.658203125
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "phase": "detect-t1-c1",
+          "count": 64,
+          "changed": []
+        }
+      ]
+    },
+    {
+      "tag": "projections-no-persistent-split",
+      "source": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/projections-no-persistent-split/complete.json",
+      "args": {
+        "invariant": 1,
+        "moe_capacity": 0,
+        "memory_fraction": 0.56,
+        "ops": "detect",
+        "graphs": 1,
+        "trace_stages": false,
+        "trace_graphs": false,
+        "no_persistent_split": true,
+        "disable_vision_graphs": false,
+        "disable_decode_graphs": false,
+        "vision_crops": 32,
+        "mode": "native",
+        "batch": 16,
+        "cache": 0,
+        "prefill_token_floor": 2048,
+        "kv_pages": 16384,
+        "repeats": 2
+      },
+      "phases": [
+        {
+          "phase": "detect-t0-c1",
+          "count": 64,
+          "changed": []
+        },
+        {
+          "phase": "detect-t0-c16",
+          "count": 64,
+          "changed": []
+        },
+        {
+          "phase": "detect-t1-c16",
+          "count": 64,
+          "changed": []
+        },
+        {
+          "phase": "detect-t1-c1",
+          "count": 64,
+          "changed": []
+        }
+      ]
+    }
+  ]
+}

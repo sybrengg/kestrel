@@ -1,0 +1,158 @@
+diff --git a/README.md b/README.md
+index 9d0b363..85dc62a 100644
+--- a/README.md
++++ b/README.md
+@@ -318,6 +318,28 @@ print(seg["bbox"])      # {"x_min": ..., "y_min": ..., "x_max": ..., "y_max": ..
+ 
+ Note: Segmentation requires Moondream 3 and separate model weights. Contact [moondream.ai](https://moondream.ai) for access.
+ 
++## Moondream captured paged-attention policy
++
++Moondream's CUDA paged attention explicitly passes `allow_persistent_split=False`
++for both prefill and decode. This keeps CUDA graph capture from independently
++selecting the persistent-split reduction. CUDA graphs and request batching stay
++enabled. CPU and MPS backends retain their existing call signatures. Other
++sources of floating-point variation (projection shape, MoE and cached versus
++full prefill) are unaffected, so this is not full-model bitwise determinism.
++
++This change must land with the companion `kestrel-kernels` wrapper update that
++exposes `allow_persistent_split` (default `True` for compatibility with other
++callers). An unpatched CUDA wrapper is rejected before Moondream weight loading.
++The current dependency pin, 0.7.5, needs to be replaced with the maintainer's
++release containing that update before merge; no such release number is assumed
++by this review branch. For local review, apply the supplied wrapper patch to an
++isolated 0.7.5 install. The Python selector patch does not change compiled kernel
++arithmetic. An RTX 5090 reproduction changes from two graph/eager output
++mismatches to zero with this policy. The integrated caller check also exercised
++prefill, decode, cache pressure and mixed image requests, observing only ordinary
++paged-prefill/decode dispatch. This controls that selector; it does not claim that
++all Moondream outputs become identical across batch sizes.
++
+ ## Streaming
+ 
+ For longer responses, you can stream tokens as they're generated:
+diff --git a/kestrel/models/moondream/attention_policy.py b/kestrel/models/moondream/attention_policy.py
+new file mode 100644
+index 0000000..5fe55b1
+--- /dev/null
++++ b/kestrel/models/moondream/attention_policy.py
+@@ -0,0 +1,23 @@
++"""Moondream's paged CUDA attention must not change reduction on capture."""
++import inspect
++
++import torch
++from kestrel_kernels import get_runtime
++
++
++def validate_attention_policy(device: torch.device) -> None:
++    """Reject an old CUDA wrapper before allocating/loading the model.
++
++    The companion kestrel-kernels change adds the explicit selector argument.
++    Silently retrying without it would reintroduce capture-dependent dispatch.
++    CPU/MPS backends do not use the CUDA persistent-split selector.
++    """
++    if device.type != "cuda":
++        return
++    attention = get_runtime(device).attention.flash_attn_fwd
++    if "allow_persistent_split" not in inspect.signature(attention).parameters:
++        raise RuntimeError(
++            "Moondream CUDA requires kestrel-kernels with the "
++            "allow_persistent_split attention policy. Install the companion "
++            "kernel update; the unpatched 0.7.5 wrapper is unsupported."
++        )
+diff --git a/kestrel/models/moondream/runtime.py b/kestrel/models/moondream/runtime.py
+index bcf0d98..cc60e27 100644
+--- a/kestrel/models/moondream/runtime.py
++++ b/kestrel/models/moondream/runtime.py
+@@ -507,6 +507,8 @@ class MoondreamRuntime:
+         self.generated_decode = None
+         self._cfg = cfg
+         self.device = cfg.resolved_device()
++        from .attention_policy import validate_attention_policy
++        validate_attention_policy(self.device)
+         self.execution_shape = ExecutionShape.AUTOREGRESSIVE
+         # Speculative decoding is not wired for Moondream; decode one token per
+         # step as before. See kestrel.runtime.spec / the spec-decode design doc.
+diff --git a/kestrel/models/moondream/text.py b/kestrel/models/moondream/text.py
+index 50ac9a5..cb58b7a 100644
+--- a/kestrel/models/moondream/text.py
++++ b/kestrel/models/moondream/text.py
+@@ -181,6 +181,7 @@ def attn(
+             aux_tensors=aux_tensors,
+             k_scale=k_scale,
+             v_scale=v_scale,
++            **({"allow_persistent_split": False} if q.is_cuda else {}),
+         )
+     else:
+         out, _ = runtime.attention.flash_attn_fwd(
+@@ -194,6 +195,7 @@ def attn(
+             causal=True,
+             k_scale=k_scale,
+             v_scale=v_scale,
++            **({"allow_persistent_split": False} if q.is_cuda else {}),
+         )
+ 
+     out = out.view(bsz, q_len, d_model)
+diff --git a/tests/moondream/test_attention_policy.py b/tests/moondream/test_attention_policy.py
+new file mode 100644
+index 0000000..306c7ee
+--- /dev/null
++++ b/tests/moondream/test_attention_policy.py
+@@ -0,0 +1,57 @@
++"""Exercise real Moondream call sites with CPU storage and a recorded backend."""
++from types import SimpleNamespace
++
++import pytest
++import torch
++
++from kestrel.models.moondream import attention_policy, text
++
++
++@pytest.mark.parametrize("device", ["cpu", "mps"])
++def test_non_cuda_does_not_require_the_cuda_extension(monkeypatch, device):
++    monkeypatch.setattr(attention_policy, "get_runtime", lambda *_: pytest.fail("CUDA backend loaded"))
++    attention_policy.validate_attention_policy(torch.device(device))
++
++
++def test_old_kernel_fails_before_model_load(monkeypatch):
++    def old_attention(q, k, v, **kwargs):
++        pass
++    monkeypatch.setattr(attention_policy, "get_runtime", lambda *_: SimpleNamespace(
++        attention=SimpleNamespace(flash_attn_fwd=old_attention)))
++    with pytest.raises(RuntimeError, match="companion kernel update"):
++        attention_policy.validate_attention_policy(torch.device("cuda"))
++
++
++def test_companion_kernel_is_accepted(monkeypatch):
++    def new_attention(q, k, v, *, allow_persistent_split=True):
++        pass
++    monkeypatch.setattr(attention_policy, "get_runtime", lambda *_: SimpleNamespace(
++        attention=SimpleNamespace(flash_attn_fwd=new_attention)))
++    attention_policy.validate_attention_policy(torch.device("cuda"))
++
++
++@pytest.mark.parametrize("mode", ["prefill", "decode"])
++@pytest.mark.parametrize("cuda", [False, True])
++def test_real_attention_call_disables_selector_without_retry(monkeypatch, mode, cuda):
++    calls = []
++    def attention(q, k, v, **kwargs):
++        calls.append(kwargs)
++        return torch.ones_like(q), None
++    backend = SimpleNamespace(attention=SimpleNamespace(flash_attn_fwd=attention))
++    monkeypatch.setattr(text, "get_runtime", lambda *_: backend)
++    monkeypatch.setattr(text, "rotary_embedding", lambda *_: None)
++    monkeypatch.setattr(torch.Tensor, "is_cuda", property(lambda _: cuda))
++    module = SimpleNamespace(qkv=SimpleNamespace(weight=torch.zeros(12, 4, dtype=torch.bfloat16), bias=None),
++                             proj=SimpleNamespace(weight=torch.eye(4, dtype=torch.bfloat16), bias=None))
++    monkeypatch.setattr(text, "_kestrel_linear", lambda x, w, b=None: torch.nn.functional.linear(x, w, b))
++    cache = SimpleNamespace(cache=SimpleNamespace(k_cache=torch.zeros(2, 1, 1, 4),
++                                                  v_cache=torch.zeros(2, 1, 1, 4)),
++                            update=lambda *a, **k: None)
++    result = text.attn(torch.zeros(1, 1, 4, dtype=torch.bfloat16), module,
++        torch.empty(0), cache, None, 1, 1, torch.zeros(1, 1, dtype=torch.long),
++        mode=mode, slot_mapping=torch.zeros(1, dtype=torch.long), page_table=torch.zeros(1, 1, dtype=torch.int32),
++        paged_kv_seqlens_q=torch.ones(1, dtype=torch.int32),
++        paged_kv_seqlens_k=torch.ones(1, dtype=torch.int32))
++    assert len(calls) == 1
++    assert (calls[0].get("allow_persistent_split") is False) if cuda else ("allow_persistent_split" not in calls[0])
++    assert result.shape == (1, 1, 4)

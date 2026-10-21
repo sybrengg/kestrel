@@ -1,0 +1,10 @@
+{
+  "kestrel_kernels/flash_attn/cute/interface.py": {
+    "original": "1676b645ff93dffff75c9b449b0be1dc421bc15de0d7639f0c6efb19df62a8db",
+    "patched": "16b61e1ca66b27986952a406960c3b4b2e5ae5db1c5deb657bd3806136706d71"
+  },
+  "kestrel_kernels/flash_attn/cute/interface_sm90.py": {
+    "original": "f2c82116875e8a54acfba6d4e5e53a7d7133d1417b1911c825c3f0c0e736f57c",
+    "patched": "cf8533bc716f7e436639061c72547806192b04920dfc26d7cfde59171bc258da"
+  }
+}

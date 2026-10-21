@@ -1,0 +1,38 @@
+--- a/kestrel_kernels/flash_attn/cute/interface.py
++++ b/kestrel_kernels/flash_attn/cute/interface.py
+@@ -171,6 +171,7 @@
+     v_scale: Optional[float] = None,
+     require_native: bool = False,
+     require_packed: bool = False,
++    allow_persistent_split: bool = True,
+ ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+     compiler_boundary = (
+         not (q.requires_grad or k.requires_grad or v.requires_grad)
+@@ -477,6 +478,7 @@
+             k_scale=k_scale, v_scale=v_scale,
+             require_native=require_native,
+             require_packed=require_packed,
++            allow_persistent_split=allow_persistent_split,
+         )
+         _flash_attn_fwd._debug_last_impl = sm90._flash_attn_fwd_impl._debug_last_impl
+         return out, lse
+--- a/kestrel_kernels/flash_attn/cute/interface_sm90.py
++++ b/kestrel_kernels/flash_attn/cute/interface_sm90.py
+@@ -412,6 +412,7 @@
+     v_scale: Optional[float] = None,
+     require_native: bool = False,
+     require_packed: bool = False,
++    allow_persistent_split: bool = True,
+ ) -> Tuple[torch.Tensor, torch.Tensor]:
+     """Forward pass for FlashAttention (kernel-selection + dispatch).
+ 
+@@ -520,7 +521,8 @@
+     # traffic and counter coordination are included.
+     persistent_split_batch_limit = 1
+     sm90_persistent_split_enabled = (
+-        not (q.requires_grad or k.requires_grad or v.requires_grad)
++        allow_persistent_split
++        and not (q.requires_grad or k.requires_grad or v.requires_grad)
+         and device_sm in (89, 90, 100, 110, 120)
+         and batch_size <= persistent_split_batch_limit
+         and page_table is not None

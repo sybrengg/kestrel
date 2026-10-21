@@ -1,0 +1,120 @@
+{
+  "attention": {
+    "focused_passed": 46,
+    "gpu_callers": "passed"
+  },
+  "nvfp4": {
+    "focused_passed": 46,
+    "broad_passed": 156,
+    "broad_skipped": 1,
+    "broad_failed": 3,
+    "gpu_integration": "passed"
+  },
+  "preexisting_failures": {
+    "base_commit": "6037cc89d0e237654a6dc1b91e28dc533cd1bfb6",
+    "reproduced_on_base": true,
+    "tests": [
+      "tests/moondream/test_generated_decode.py::test_moondream_allocates_selected_generated_program_abi_capacity",
+      "tests/test_decode_path.py::test_generated_requirement_covers_complete_batch_domain",
+      "tests/test_decode_path.py::test_whisper_decode_uses_caller_selected_stream"
+    ]
+  },
+  "commands": {
+    "attention": "python -m pytest -q tests/moondream/test_attention_policy.py tests/moondream/test_text.py tests/moondream/test_runtime_prefill.py tests/moondream/test_siglip_backend.py tests/moondream/test_runtime_megakernel_fallback.py tests/moondream/test_weight_streaming.py tests/test_config.py",
+    "nvfp4_focused": "python -m pytest -q tests/moondream/test_vision_nvfp4.py tests/moondream/test_vision_request_batch.py tests/moondream/test_siglip_backend.py tests/moondream/test_runtime_prefill.py tests/test_config.py",
+    "nvfp4_broad": "python -m pytest -q tests/moondream tests/test_config.py tests/test_decode_path.py"
+  },
+  "gpu_verification": {
+    "status": "passed",
+    "required_gpu_jobs": [
+      "attention-kernel-original-v2",
+      "attention-kernel-fixed-v2",
+      "integration-native-g1-v3",
+      "integration-nvfp4-g1-v3",
+      "integration-nvfp4-g0-v3",
+      "combined-performance-native",
+      "combined-performance-nvfp4"
+    ],
+    "required_jobs_passed": 7,
+    "kernel_mismatches_before": 2,
+    "kernel_mismatches_after": 0,
+    "configurations": [
+      {
+        "tag": "integration-native-g1-v3",
+        "feature_counts": 32,
+        "prototype_exact": false,
+        "cache_requests": 34,
+        "mixed_requests": 96,
+        "attention_dispatch": {
+          "sm120_decode": 912,
+          "sm120_paged_prefill": 2400
+        },
+        "fp4_gemm_launches": 0
+      },
+      {
+        "tag": "integration-nvfp4-g1-v3",
+        "feature_counts": 32,
+        "prototype_exact": true,
+        "cache_requests": 34,
+        "mixed_requests": 96,
+        "attention_dispatch": {
+          "sm120_decode": 912,
+          "sm120_paged_prefill": 2328
+        },
+        "fp4_gemm_launches": 108
+      },
+      {
+        "tag": "integration-nvfp4-g0-v3",
+        "feature_counts": 32,
+        "prototype_exact": true,
+        "cache_requests": 34,
+        "mixed_requests": 96,
+        "attention_dispatch": {
+          "sm120_paged_prefill": 2328,
+          "sm120_decode": 28824
+        },
+        "fp4_gemm_launches": 108
+      }
+    ],
+    "request_checks": 390,
+    "feature_crop_counts": 96,
+    "nvfp4_prototype_exact_counts": 64,
+    "performance_observations": 768,
+    "source_files_verified": 223,
+    "earlier_failed_attempts": [
+      {
+        "tag": "attention-kernel-original",
+        "exit": 1
+      },
+      {
+        "tag": "attention-kernel-fixed",
+        "exit": 1
+      },
+      {
+        "tag": "integration-native-g1",
+        "exit": 1
+      },
+      {
+        "tag": "integration-nvfp4-g1",
+        "exit": 1
+      },
+      {
+        "tag": "integration-nvfp4-g0",
+        "exit": 1
+      },
+      {
+        "tag": "integration-native-g1-v2",
+        "exit": 1
+      },
+      {
+        "tag": "integration-nvfp4-g1-v2",
+        "exit": 1
+      },
+      {
+        "tag": "integration-nvfp4-g0-v2",
+        "exit": 1
+      }
+    ],
+    "scope": "Full runtime configuration, native attention call policy, graph/eager feature equality, mixed/cache requests and warm SDK speed. Nonempty chat answers are not semantic accuracy validation."
+  }
+}

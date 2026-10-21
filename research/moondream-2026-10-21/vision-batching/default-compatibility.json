@@ -1,0 +1,639 @@
+{
+  "results": [
+    {
+      "phase": "query-t0-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "query-t0-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "query-t1-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "query-t1-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "detect-t0-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "detect-t0-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 3,
+      "changes": [
+        {
+          "id": "sequence-A:243",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.403564453125,
+                  "y_min": 0.541015625,
+                  "x_max": 0.471435546875,
+                  "y_max": 0.607421875
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.40625,
+                  "y_min": 0.541015625,
+                  "x_max": 0.46875,
+                  "y_max": 0.607421875
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-A:1263",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.21142578125,
+                  "y_min": 0.60205078125,
+                  "x_max": 0.26904296875,
+                  "y_max": 0.74169921875
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.2109375,
+                  "y_min": 0.60205078125,
+                  "x_max": 0.26953125,
+                  "y_max": 0.74169921875
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:0",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.458740234375,
+                  "y_min": 0.63330078125,
+                  "x_max": 0.549072265625,
+                  "y_max": 0.77294921875
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.457763671875,
+                  "y_min": 0.63330078125,
+                  "x_max": 0.550048828125,
+                  "y_max": 0.77294921875
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "detect-t1-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 5,
+      "changes": [
+        {
+          "id": "sequence-B:72",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.5146484375,
+                  "y_min": 0.60546875,
+                  "x_max": 0.6103515625,
+                  "y_max": 0.75390625
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.514892578125,
+                  "y_min": 0.60546875,
+                  "x_max": 0.610107421875,
+                  "y_max": 0.75390625
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:24",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.45703125,
+                  "y_min": 0.625,
+                  "x_max": 0.55078125,
+                  "y_max": 0.7734375
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.45703125,
+                  "y_min": 0.62744140625,
+                  "x_max": 0.55078125,
+                  "y_max": 0.77099609375
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:3",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.457763671875,
+                  "y_min": 0.63330078125,
+                  "x_max": 0.550048828125,
+                  "y_max": 0.77294921875
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.457763671875,
+                  "y_min": 0.63232421875,
+                  "x_max": 0.550048828125,
+                  "y_max": 0.77392578125
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-A:360",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.4163818359375,
+                  "y_min": 0.599609375,
+                  "x_max": 0.4664306640625,
+                  "y_max": 0.658203125
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.41796875,
+                  "y_min": 0.599609375,
+                  "x_max": 0.46484375,
+                  "y_max": 0.658203125
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-A:114",
+          "native": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.60791015625,
+                  "y_min": 0.82275390625,
+                  "x_max": 0.72021484375,
+                  "y_max": 0.89599609375
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": null,
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.60791015625,
+                  "y_min": 0.826171875,
+                  "x_max": 0.72021484375,
+                  "y_max": 0.892578125
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "detect-t1-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "chain-t0-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "chain-t0-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 6,
+      "changes": [
+        {
+          "id": "sequence-B:12",
+          "native": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.45703125,
+                  "y_min": 0.62890625,
+                  "x_max": 0.55078125,
+                  "y_max": 0.77734375
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.457763671875,
+                  "y_min": 0.62890625,
+                  "x_max": 0.550048828125,
+                  "y_max": 0.77734375
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:72",
+          "native": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.5146484375,
+                  "y_min": 0.60546875,
+                  "x_max": 0.6103515625,
+                  "y_max": 0.75390625
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.514892578125,
+                  "y_min": 0.60546875,
+                  "x_max": 0.610107421875,
+                  "y_max": 0.75390625
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:273",
+          "native": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.4945068359375,
+                  "y_min": 0.64990234375,
+                  "x_max": 0.5445556640625,
+                  "y_max": 0.73291015625
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.49609375,
+                  "y_min": 0.64990234375,
+                  "x_max": 0.54296875,
+                  "y_max": 0.73291015625
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:282",
+          "native": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.3203125,
+                  "y_min": 0.642578125,
+                  "x_max": 0.390625,
+                  "y_max": 0.740234375
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.3203125,
+                  "y_min": 0.64306640625,
+                  "x_max": 0.390625,
+                  "y_max": 0.73974609375
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:534",
+          "native": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.50390625,
+                  "y_min": 0.65673828125,
+                  "x_max": 0.53515625,
+                  "y_max": 0.70263671875
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.4141845703125,
+                  "y_min": 0.65625,
+                  "x_max": 0.4569091796875,
+                  "y_max": 0.71875
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "sequence-B:1332",
+          "native": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.714111328125,
+                  "y_min": 0.65087890625,
+                  "x_max": 0.778076171875,
+                  "y_max": 0.72412109375
+                }
+              ]
+            }
+          },
+          "default": {
+            "query": {
+              "answer": "yes"
+            },
+            "detect": {
+              "objects": [
+                {
+                  "x_min": 0.62109375,
+                  "y_min": 0.65234375,
+                  "x_max": 0.65234375,
+                  "y_max": 0.69140625
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "chain-t1-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    },
+    {
+      "phase": "chain-t1-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changes": [],
+      "vision_request_batches": {}
+    }
+  ],
+  "interpretation": "The opt-out default follows the legacy per-image path and preserves original graph/workspace shapes. All384 serial outputs match native exactly. Concurrent outputs are not bitwise preserved:14/384 differences for the default candidate versus the first native run, while an unchanged-native repeat itself differs11/384. This establishes native repeat variability, not proof that every candidate difference is unrelated to scheduling overhead. Do not claim a strict C16 nonregression or bitwise-compatibility guarantee.",
+  "native_repeat": [
+    {
+      "phase": "query-t0-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "query-t0-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "query-t1-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "query-t1-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "detect-t0-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "detect-t0-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 4,
+      "changed_ids": [
+        "sequence-A:243",
+        "sequence-A:1263",
+        "sequence-B:0",
+        "sequence-B:24"
+      ]
+    },
+    {
+      "phase": "detect-t1-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 3,
+      "changed_ids": [
+        "sequence-B:534",
+        "sequence-B:24",
+        "sequence-B:3"
+      ]
+    },
+    {
+      "phase": "detect-t1-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "chain-t0-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    },
+    {
+      "phase": "chain-t0-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 2,
+      "changed_ids": [
+        "sequence-B:0",
+        "sequence-B:282"
+      ]
+    },
+    {
+      "phase": "chain-t1-c16",
+      "concurrency": 16,
+      "compared": 64,
+      "changed": 2,
+      "changed_ids": [
+        "sequence-B:1332",
+        "sequence-A:114"
+      ]
+    },
+    {
+      "phase": "chain-t1-c1",
+      "concurrency": 1,
+      "compared": 64,
+      "changed": 0,
+      "changed_ids": []
+    }
+  ],
+  "native_repeat_serial_changes": 0,
+  "native_repeat_concurrent_changes": 11,
+  "default_serial_changes": 0,
+  "default_concurrent_changes": 14
+}

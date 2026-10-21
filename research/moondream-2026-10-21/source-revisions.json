@@ -1,0 +1,8 @@
+{
+  "upstream_base": "8e6fb899bb8a076f3235b6a5ab832a78c031c77b",
+  "attention": "dab897894dc09b4db4c2adbff9adb0f376a428f2",
+  "batching": "6037cc89d0e237654a6dc1b91e28dc533cd1bfb6",
+  "nvfp4": "5678e63aaf2a9d455bb8bc4f8e998560aa8fe43b",
+  "nvfp4_code_matches_tested_revision": "bdd7b72349f4c8ae7241c4671d336c2b149e848d",
+  "publication_change": "NVFP4 README only; all implementation and tests unchanged"
+}

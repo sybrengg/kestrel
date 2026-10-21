@@ -1,0 +1,187 @@
+{
+  "scope": "Diagnostic partially invariant runtime; first decode call, layer3. Graph and eager comparison.",
+  "used_kv_tokens": 739,
+  "cache_note": "Compare only used739 tokens; unused captured cache tail768 contains irrelevant allocator bytes. Trace stores BF16 tensors losslessly as float32, and cache bytes as float32 cast back to uint8 for hashing.",
+  "rows": [
+    {
+      "tag": "normalized",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00037-normalized.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00037-normalized.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "eea4251b519ad4c610dbd3d34cddea285576045035120583af1cb5820cab4370",
+      "eager_sha256": "eea4251b519ad4c610dbd3d34cddea285576045035120583af1cb5820cab4370"
+    },
+    {
+      "tag": "projection_6144",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00038-projection_6144.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00038-projection_6144.npy",
+      "shape": [
+        1,
+        6144
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "e1353d288b1ddc50faf77d9b09f0f351f8114ae144a24ef3242bc8b4c5f7326b",
+      "eager_sha256": "e1353d288b1ddc50faf77d9b09f0f351f8114ae144a24ef3242bc8b4c5f7326b"
+    },
+    {
+      "tag": "projection_64",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00039-projection_64.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00039-projection_64.npy",
+      "shape": [
+        1,
+        64
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "4388c0c6ffd27ee1eba125868ed746d7b9f576512765cb7be949acde6b4d78bc",
+      "eager_sha256": "4388c0c6ffd27ee1eba125868ed746d7b9f576512765cb7be949acde6b4d78bc"
+    },
+    {
+      "tag": "before_tau",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00040-before_tau.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00040-before_tau.npy",
+      "shape": [
+        1,
+        6144
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "e1353d288b1ddc50faf77d9b09f0f351f8114ae144a24ef3242bc8b4c5f7326b",
+      "eager_sha256": "e1353d288b1ddc50faf77d9b09f0f351f8114ae144a24ef3242bc8b4c5f7326b"
+    },
+    {
+      "tag": "after_tau",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00041-after_tau.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00041-after_tau.npy",
+      "shape": [
+        1,
+        6144
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "2870d41aec63befe56d8314202f0387d002a42b66264505bbdbc261c900aae6a",
+      "eager_sha256": "2870d41aec63befe56d8314202f0387d002a42b66264505bbdbc261c900aae6a"
+    },
+    {
+      "tag": "q_rotary",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00042-q_rotary.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00042-q_rotary.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "0ebb947c93188369af0ec2b5598481a009a77b00247e3e07be7073bc7d47666c",
+      "eager_sha256": "0ebb947c93188369af0ec2b5598481a009a77b00247e3e07be7073bc7d47666c"
+    },
+    {
+      "tag": "k_rotary",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00043-k_rotary.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00043-k_rotary.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "78bf8afafb30c68a8144c2b98dc47394c9887a9cfab5f808ba3c219780949880",
+      "eager_sha256": "78bf8afafb30c68a8144c2b98dc47394c9887a9cfab5f808ba3c219780949880"
+    },
+    {
+      "tag": "cache_k",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00044-cache_k.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00044-cache_k.npy",
+      "shape": [
+        1513472
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "18492198ea0c2728dedb286471081815e79a48587ef5bd5f2f5d4d6c7c6ca3bb",
+      "eager_sha256": "18492198ea0c2728dedb286471081815e79a48587ef5bd5f2f5d4d6c7c6ca3bb"
+    },
+    {
+      "tag": "cache_v",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00045-cache_v.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00045-cache_v.npy",
+      "shape": [
+        1513472
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "473891ad8c4fcf306b4c976b95105ca7feeaf401aa6d734f6fd65f7fb1a04378",
+      "eager_sha256": "473891ad8c4fcf306b4c976b95105ca7feeaf401aa6d734f6fd65f7fb1a04378"
+    },
+    {
+      "tag": "kv_lengths",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00046-kv_lengths.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00046-kv_lengths.npy",
+      "shape": [
+        1,
+        1
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "5fce912e0194ea714bb437b5583f91c0645dd1cded2ef6aef90ea2b98467787f",
+      "eager_sha256": "5fce912e0194ea714bb437b5583f91c0645dd1cded2ef6aef90ea2b98467787f"
+    },
+    {
+      "tag": "flash_output",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00047-flash_output.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00047-flash_output.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 1,
+      "max_abs": 6.103515625e-05,
+      "graph_sha256": "a31c08acb77dd058eac362cf6768c3e669d7728585bdba9d8c4311cdee94a0c2",
+      "eager_sha256": "49b61e4610765cbd02597fb6dfdda139a92da9067cdf30473bf868ee4d68a6d5"
+    },
+    {
+      "tag": "projection_2048",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00048-projection_2048.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00048-projection_2048.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 4,
+      "max_abs": 3.0517578125e-05,
+      "graph_sha256": "a5b268a1109629d28cbe2b4e41cbeb4e4166e78ccb0757b85a83ed5dcfd21843",
+      "eager_sha256": "13db0e004361f937d28184bbeed8782b24ab334a1d276b4e53f19d9ca8023592"
+    },
+    {
+      "tag": "attention",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00049-attention.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00049-attention.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 4,
+      "max_abs": 3.0517578125e-05,
+      "graph_sha256": "a5b268a1109629d28cbe2b4e41cbeb4e4166e78ccb0757b85a83ed5dcfd21843",
+      "eager_sha256": "13db0e004361f937d28184bbeed8782b24ab334a1d276b4e53f19d9ca8023592"
+    },
+    {
+      "tag": "mlp",
+      "graph_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-graphs/00050-mlp.npy",
+      "eager_file": "bench/evidence/moondream31-batching-fix-2026-10-20/eye/results/trace-kv-eager/00050-mlp.npy",
+      "shape": [
+        1,
+        2048
+      ],
+      "different": 0,
+      "max_abs": 0.0,
+      "graph_sha256": "00210091c29d39ffaac116dc8dc8db3ce0f399e5b50245212215eb6f3d5f3b0f",
+      "eager_sha256": "00210091c29d39ffaac116dc8dc8db3ce0f399e5b50245212215eb6f3d5f3b0f"
+    }
+  ]
+}

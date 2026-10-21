@@ -1,0 +1,2369 @@
+{
+  "scope": "Integrated runtime option on the combined review source, ordinary audited loader,64 visible-target images/two repeats,C1/16/32,cache off,CUDA graphs enabled. Both precision arms use explicit ordinary paged attention. Torch deterministic checking is off, matching normal runtime; no process-wide flags changed by the encoder. Synchronized SDK wall time includes CPU preprocessing, scheduling and decode, excludes loading/HTTP/postprocessing. This is an integration check on previously inspected clips, not held-out accuracy validation.",
+  "kernel_profiles": [
+    {
+      "tag": "integration-nvfp4-g0-v3",
+      "crops": 9,
+      "total_kernel_ms": 20.79910700000001,
+      "category_ms": {
+        "other_pointwise_or_copy": 7.845837000000008,
+        "fill_operations": 0.8501149999999998,
+        "matrix": 4.802473,
+        "normalization": 0.48781199999999986,
+        "quantization": 2.7184340000000007,
+        "attention": 4.094436
+      },
+      "largest_kernels": [
+        {
+          "name": "cutlass3x_sm120_bstensorop_s16864gemm_block_scaled_ue4m3xe2m1_ue4m3xe2m1_f32_bf16_bf16_128x128x256_1x1x1_0_tnn_align32_o_vs16_bias_bf16_relu",
+          "ms": 4.739848999999997
+        },
+        {
+          "name": "kernel_cutlass_kernel_kestrel_kernelsflash_attncuteflash_fwdFlashAttentionForwardSm80_object_at__tensorptrbf16gmemalign16o72i64div81i64div8i64div8_tensorptrbf16gmemalign16o72i64div81i64di_0",
+          "ms": 4.094435999999999
+        },
+        {
+          "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<c10::BFloat16> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<c10::BFloat16> const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<c10::BFloat16> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<c10::BFloat16> const&)::{lambda(int)#1})",
+          "ms": 3.790817999999998
+        },
+        {
+          "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1})",
+          "ms": 2.2917799999999997
+        },
+        {
+          "name": "triton_red_fused_abs_amax_0",
+          "ms": 1.9109190000000011
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+          "ms": 0.8489629999999999
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::GeluCUDAKernelImpl(at::TensorIteratorBase&, at::native::GeluType)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::GeluCUDAKernelImpl(at::TensorIteratorBase&, at::native::GeluType)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>)",
+          "ms": 0.816033
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul> >(int, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul>)",
+          "ms": 0.580611
+        },
+        {
+          "name": "void kestrel::(anonymous namespace)::layernorm_bias_bf16_vec8_rows4_reloadx_kernel<1152>(__nv_bfloat16*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, int, float)",
+          "ms": 0.4878120000000001
+        },
+        {
+          "name": "kernel_cutlass_kernel_flashinferquantizationkernelsnvfp4_quantizeNVFP4QuantizeSwizzledKernel_object_at__tensorptrbf16gmemalign16o115211521_tensorptri8gmemalign16o5765761_tensorptri8gmemal_0",
+          "ms": 0.34722699999999995
+        }
+      ]
+    },
+    {
+      "tag": "integration-nvfp4-g1-v3",
+      "crops": 9,
+      "total_kernel_ms": 19.988230000000005,
+      "category_ms": {
+        "other_pointwise_or_copy": 7.257700000000004,
+        "fill_operations": 0.893433,
+        "matrix": 4.676154000000001,
+        "normalization": 0.4580770000000001,
+        "quantization": 2.713072999999998,
+        "attention": 3.989793
+      },
+      "largest_kernels": [
+        {
+          "name": "cutlass3x_sm120_bstensorop_s16864gemm_block_scaled_ue4m3xe2m1_ue4m3xe2m1_f32_bf16_bf16_128x128x256_1x1x1_0_tnn_align32_o_vs16_bias_bf16_relu",
+          "ms": 4.611993999999999
+        },
+        {
+          "name": "kernel_cutlass_kernel_kestrel_kernelsflash_attncuteflash_fwdFlashAttentionForwardSm80_object_at__tensorptrbf16gmemalign16o72i64div81i64div8i64div8_tensorptrbf16gmemalign16o72i64div81i64di_0",
+          "ms": 3.9897930000000006
+        },
+        {
+          "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<c10::BFloat16> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<c10::BFloat16> const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<c10::BFloat16> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<c10::BFloat16> const&)::{lambda(int)#1})",
+          "ms": 3.291054
+        },
+        {
+          "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1})",
+          "ms": 2.277135
+        },
+        {
+          "name": "triton_red_fused_abs_amax_0",
+          "ms": 1.920247000000001
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+          "ms": 0.8920890000000001
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::GeluCUDAKernelImpl(at::TensorIteratorBase&, at::native::GeluType)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::GeluCUDAKernelImpl(at::TensorIteratorBase&, at::native::GeluType)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>)",
+          "ms": 0.8093680000000001
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul> >(int, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul>)",
+          "ms": 0.578299
+        },
+        {
+          "name": "void kestrel::(anonymous namespace)::layernorm_bias_bf16_vec8_rows4_reloadx_kernel<1152>(__nv_bfloat16*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16 const*, int, float)",
+          "ms": 0.45807699999999996
+        },
+        {
+          "name": "kernel_cutlass_kernel_flashinferquantizationkernelsnvfp4_quantizeNVFP4QuantizeSwizzledKernel_object_at__tensorptrbf16gmemalign16o115211521_tensorptri8gmemalign16o5765761_tensorptri8gmemal_0",
+          "ms": 0.3480619999999998
+        }
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "tag": "combined-performance-native",
+      "concurrency": 1,
+      "observations": 128,
+      "images_per_s": 13.889340956131988,
+      "repeats_fps": [
+        13.609126432695653,
+        14.181337413409466
+      ],
+      "mean_iou": 0.6089983262030676,
+      "iou50": 102,
+      "errors": 0,
+      "api_p95_ms": 73.63966107368469,
+      "decode_batches": {
+        "1": 384
+      },
+      "vision_crop_batches": {
+        "9": 128
+      },
+      "quant_vision_crop_batches": {}
+    },
+    {
+      "tag": "combined-performance-native",
+      "concurrency": 16,
+      "observations": 128,
+      "images_per_s": 21.346914925535952,
+      "repeats_fps": [
+        21.41991162294112,
+        21.274414067758688
+      ],
+      "mean_iou": 0.6130713140971712,
+      "iou50": 102,
+      "errors": 0,
+      "api_p95_ms": 755.6993793696165,
+      "decode_batches": {
+        "16": 24
+      },
+      "vision_crop_batches": {
+        "9": 8,
+        "27": 40
+      },
+      "quant_vision_crop_batches": {}
+    },
+    {
+      "tag": "combined-performance-native",
+      "concurrency": 32,
+      "observations": 128,
+      "images_per_s": 21.756829934720287,
+      "repeats_fps": [
+        21.900382218311233,
+        21.61514730449112
+      ],
+      "mean_iou": 0.6115163558996195,
+      "iou50": 102,
+      "errors": 0,
+      "api_p95_ms": 1482.9659834504128,
+      "decode_batches": {
+        "32": 12
+      },
+      "vision_crop_batches": {
+        "18": 1,
+        "27": 40,
+        "9": 6
+      },
+      "quant_vision_crop_batches": {}
+    },
+    {
+      "tag": "combined-performance-nvfp4",
+      "concurrency": 1,
+      "observations": 128,
+      "images_per_s": 18.140358361606605,
+      "repeats_fps": [
+        18.141925516057494,
+        18.13879147788342
+      ],
+      "mean_iou": 0.6305706541805347,
+      "iou50": 104,
+      "errors": 0,
+      "api_p95_ms": 57.8781682997942,
+      "decode_batches": {
+        "1": 378
+      },
+      "vision_crop_batches": {
+        "9": 128
+      },
+      "quant_vision_crop_batches": {}
+    },
+    {
+      "tag": "combined-performance-nvfp4",
+      "concurrency": 16,
+      "observations": 128,
+      "images_per_s": 25.78717124887913,
+      "repeats_fps": [
+        25.884773313358494,
+        25.69030246323606
+      ],
+      "mean_iou": 0.6049077235809139,
+      "iou50": 100,
+      "errors": 0,
+      "api_p95_ms": 651.5653170645237,
+      "decode_batches": {
+        "16": 14,
+        "15": 10,
+        "1": 4
+      },
+      "vision_crop_batches": {
+        "9": 10,
+        "27": 38,
+        "18": 2
+      },
+      "quant_vision_crop_batches": {}
+    },
+    {
+      "tag": "combined-performance-nvfp4",
+      "concurrency": 32,
+      "observations": 128,
+      "images_per_s": 26.313569969470567,
+      "repeats_fps": [
+        26.329289709335384,
+        26.29786898915274
+      ],
+      "mean_iou": 0.6127308776157571,
+      "iou50": 101,
+      "errors": 0,
+      "api_p95_ms": 1256.170343607664,
+      "decode_batches": {
+        "32": 6,
+        "31": 6
+      },
+      "vision_crop_batches": {
+        "9": 6,
+        "27": 40,
+        "18": 1
+      },
+      "quant_vision_crop_batches": {}
+    }
+  ],
+  "comparisons": [
+    {
+      "tag": "combined-performance-nvfp4",
+      "concurrency": 1,
+      "comparisons": 128,
+      "speedup": 1.3060632911886176,
+      "changed": 84,
+      "regressions": [
+        {
+          "id": "sequence-A:693",
+          "trial": 0,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 0,
+          "baseline_iou": 0.6064665710186505,
+          "candidate_iou": 0.0,
+          "delta": -0.6064665710186505
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 1,
+          "baseline_iou": 0.6064665710186505,
+          "candidate_iou": 0.0,
+          "delta": -0.6064665710186505
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 1,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        }
+      ],
+      "improvements": [
+        {
+          "id": "sequence-B:180",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.7796221886874777
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7982794423019879,
+          "delta": 0.7982794423019879
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7982794423019879,
+          "delta": 0.7982794423019879
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.7796221886874777
+        }
+      ],
+      "changes": [
+        {
+          "id": "sequence-A:0",
+          "trial": 0,
+          "baseline_iou": 0.8872410397148993,
+          "candidate_iou": 0.8772509888560666,
+          "delta": -0.009990050858832755
+        },
+        {
+          "id": "sequence-A:18",
+          "trial": 0,
+          "baseline_iou": 0.9534024551926704,
+          "candidate_iou": 0.9528766850741652,
+          "delta": -0.0005257701185051866
+        },
+        {
+          "id": "sequence-A:111",
+          "trial": 0,
+          "baseline_iou": 0.7515491306455433,
+          "candidate_iou": 0.8456388728043033,
+          "delta": 0.09408974215875998
+        },
+        {
+          "id": "sequence-A:114",
+          "trial": 0,
+          "baseline_iou": 0.7999882242807538,
+          "candidate_iou": 0.7982369953110506,
+          "delta": -0.0017512289697031447
+        },
+        {
+          "id": "sequence-A:225",
+          "trial": 0,
+          "baseline_iou": 0.7371065578738005,
+          "candidate_iou": 0.7347560063506535,
+          "delta": -0.0023505515231470042
+        },
+        {
+          "id": "sequence-A:243",
+          "trial": 0,
+          "baseline_iou": 0.7596439169139455,
+          "candidate_iou": 0.7611304897140807,
+          "delta": 0.0014865728001351997
+        },
+        {
+          "id": "sequence-A:351",
+          "trial": 0,
+          "baseline_iou": 0.574310057878134,
+          "candidate_iou": 0.6499547723818844,
+          "delta": 0.07564471450375032
+        },
+        {
+          "id": "sequence-A:363",
+          "trial": 0,
+          "baseline_iou": 0.5081998449097149,
+          "candidate_iou": 0.5759598242310102,
+          "delta": 0.0677599793212953
+        },
+        {
+          "id": "sequence-A:399",
+          "trial": 0,
+          "baseline_iou": 0.6129819424109332,
+          "candidate_iou": 0.6802057947468194,
+          "delta": 0.06722385233588624
+        },
+        {
+          "id": "sequence-A:480",
+          "trial": 0,
+          "baseline_iou": 0.790680585359862,
+          "candidate_iou": 0.788294426775634,
+          "delta": -0.002386158584227971
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 0,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-A:711",
+          "trial": 0,
+          "baseline_iou": 0.835566783831283,
+          "candidate_iou": 0.8342418972237096,
+          "delta": -0.001324886607573461
+        },
+        {
+          "id": "sequence-A:804",
+          "trial": 0,
+          "baseline_iou": 0.809258260411577,
+          "candidate_iou": 0.8097743487722736,
+          "delta": 0.0005160883606966093
+        },
+        {
+          "id": "sequence-A:819",
+          "trial": 0,
+          "baseline_iou": 0.7532542941903072,
+          "candidate_iou": 0.7546939175605074,
+          "delta": 0.0014396233702002048
+        },
+        {
+          "id": "sequence-A:918",
+          "trial": 0,
+          "baseline_iou": 0.8904615715503746,
+          "candidate_iou": 0.8591291332689985,
+          "delta": -0.03133243828137611
+        },
+        {
+          "id": "sequence-A:1029",
+          "trial": 0,
+          "baseline_iou": 0.6754426807760158,
+          "candidate_iou": 0.6754426807760158,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-A:1077",
+          "trial": 0,
+          "baseline_iou": 0.6306011643880419,
+          "candidate_iou": 0.8260245574868441,
+          "delta": 0.1954233930988022
+        },
+        {
+          "id": "sequence-A:1143",
+          "trial": 0,
+          "baseline_iou": 0.8227481960686744,
+          "candidate_iou": 0.7488570255771496,
+          "delta": -0.07389117049152483
+        },
+        {
+          "id": "sequence-A:1257",
+          "trial": 0,
+          "baseline_iou": 0.8458844282342113,
+          "candidate_iou": 0.8380277971892232,
+          "delta": -0.007856631044988127
+        },
+        {
+          "id": "sequence-A:1263",
+          "trial": 0,
+          "baseline_iou": 0.8458999049015017,
+          "candidate_iou": 0.7985538441934523,
+          "delta": -0.047346060708049365
+        },
+        {
+          "id": "sequence-B:0",
+          "trial": 0,
+          "baseline_iou": 0.8014755013177027,
+          "candidate_iou": 0.8161747295149289,
+          "delta": 0.014699228197226133
+        },
+        {
+          "id": "sequence-B:3",
+          "trial": 0,
+          "baseline_iou": 0.7948644516067096,
+          "candidate_iou": 0.7939909265392511,
+          "delta": -0.0008735250674585249
+        },
+        {
+          "id": "sequence-B:12",
+          "trial": 0,
+          "baseline_iou": 0.7801169590643275,
+          "candidate_iou": 0.8097340310004127,
+          "delta": 0.029617071936085204
+        },
+        {
+          "id": "sequence-B:15",
+          "trial": 0,
+          "baseline_iou": 0.7996371882086167,
+          "candidate_iou": 0.8060650067834824,
+          "delta": 0.006427818574865629
+        },
+        {
+          "id": "sequence-B:24",
+          "trial": 0,
+          "baseline_iou": 0.7959454191033138,
+          "candidate_iou": 0.8101888104715135,
+          "delta": 0.014243391368199632
+        },
+        {
+          "id": "sequence-B:30",
+          "trial": 0,
+          "baseline_iou": 0.7604415917843391,
+          "candidate_iou": 0.7473986972337371,
+          "delta": -0.013042894550602036
+        },
+        {
+          "id": "sequence-B:54",
+          "trial": 0,
+          "baseline_iou": 0.7966868920350569,
+          "candidate_iou": 0.8076480304319539,
+          "delta": 0.010961138396896941
+        },
+        {
+          "id": "sequence-B:72",
+          "trial": 0,
+          "baseline_iou": 0.8479866332497904,
+          "candidate_iou": 0.8507190601579913,
+          "delta": 0.002732426908200858
+        },
+        {
+          "id": "sequence-B:93",
+          "trial": 0,
+          "baseline_iou": 0.7608777994274037,
+          "candidate_iou": 0.7620107380309904,
+          "delta": 0.0011329386035866529
+        },
+        {
+          "id": "sequence-B:105",
+          "trial": 0,
+          "baseline_iou": 0.7859686281369694,
+          "candidate_iou": 0.7920065045608149,
+          "delta": 0.006037876423845456
+        },
+        {
+          "id": "sequence-B:165",
+          "trial": 0,
+          "baseline_iou": 0.7964762637208983,
+          "candidate_iou": 0.8354752485833428,
+          "delta": 0.038998984862444463
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.7796221886874777
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:204",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:261",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:270",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 0,
+          "baseline_iou": 0.6064665710186505,
+          "candidate_iou": 0.0,
+          "delta": -0.6064665710186505
+        },
+        {
+          "id": "sequence-B:276",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 0,
+          "baseline_iou": 0.7478123891047891,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.0013966186237877043
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7982794423019879,
+          "delta": 0.7982794423019879
+        },
+        {
+          "id": "sequence-B:1197",
+          "trial": 0,
+          "baseline_iou": 0.0046390002120896105,
+          "candidate_iou": 0.004772838211632,
+          "delta": 0.00013383799954238933
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 0,
+          "baseline_iou": 0.7155555555555555,
+          "candidate_iou": 0.789263190278419,
+          "delta": 0.07370763472286346
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 1,
+          "baseline_iou": 0.7155555555555555,
+          "candidate_iou": 0.789263190278419,
+          "delta": 0.07370763472286346
+        },
+        {
+          "id": "sequence-B:1197",
+          "trial": 1,
+          "baseline_iou": 0.0046390002120896105,
+          "candidate_iou": 0.004772838211632,
+          "delta": 0.00013383799954238933
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7982794423019879,
+          "delta": 0.7982794423019879
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 1,
+          "baseline_iou": 0.7478123891047891,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.0013966186237877043
+        },
+        {
+          "id": "sequence-B:276",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 1,
+          "baseline_iou": 0.6064665710186505,
+          "candidate_iou": 0.0,
+          "delta": -0.6064665710186505
+        },
+        {
+          "id": "sequence-B:270",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:261",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:204",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.7796221886874777
+        },
+        {
+          "id": "sequence-B:165",
+          "trial": 1,
+          "baseline_iou": 0.7964762637208983,
+          "candidate_iou": 0.8354752485833428,
+          "delta": 0.038998984862444463
+        },
+        {
+          "id": "sequence-B:105",
+          "trial": 1,
+          "baseline_iou": 0.7859686281369694,
+          "candidate_iou": 0.7920065045608149,
+          "delta": 0.006037876423845456
+        },
+        {
+          "id": "sequence-B:93",
+          "trial": 1,
+          "baseline_iou": 0.7608777994274037,
+          "candidate_iou": 0.7620107380309904,
+          "delta": 0.0011329386035866529
+        },
+        {
+          "id": "sequence-B:72",
+          "trial": 1,
+          "baseline_iou": 0.8479866332497904,
+          "candidate_iou": 0.8507190601579913,
+          "delta": 0.002732426908200858
+        },
+        {
+          "id": "sequence-B:54",
+          "trial": 1,
+          "baseline_iou": 0.7966868920350569,
+          "candidate_iou": 0.8076480304319539,
+          "delta": 0.010961138396896941
+        },
+        {
+          "id": "sequence-B:30",
+          "trial": 1,
+          "baseline_iou": 0.7604415917843391,
+          "candidate_iou": 0.7473986972337371,
+          "delta": -0.013042894550602036
+        },
+        {
+          "id": "sequence-B:24",
+          "trial": 1,
+          "baseline_iou": 0.7959454191033138,
+          "candidate_iou": 0.8101888104715135,
+          "delta": 0.014243391368199632
+        },
+        {
+          "id": "sequence-B:15",
+          "trial": 1,
+          "baseline_iou": 0.7996371882086167,
+          "candidate_iou": 0.8060650067834824,
+          "delta": 0.006427818574865629
+        },
+        {
+          "id": "sequence-B:12",
+          "trial": 1,
+          "baseline_iou": 0.7801169590643275,
+          "candidate_iou": 0.8097340310004127,
+          "delta": 0.029617071936085204
+        },
+        {
+          "id": "sequence-B:3",
+          "trial": 1,
+          "baseline_iou": 0.7948644516067096,
+          "candidate_iou": 0.7939909265392511,
+          "delta": -0.0008735250674585249
+        },
+        {
+          "id": "sequence-B:0",
+          "trial": 1,
+          "baseline_iou": 0.8014755013177027,
+          "candidate_iou": 0.8161747295149289,
+          "delta": 0.014699228197226133
+        },
+        {
+          "id": "sequence-A:1263",
+          "trial": 1,
+          "baseline_iou": 0.8458999049015017,
+          "candidate_iou": 0.7985538441934523,
+          "delta": -0.047346060708049365
+        },
+        {
+          "id": "sequence-A:1257",
+          "trial": 1,
+          "baseline_iou": 0.8458844282342113,
+          "candidate_iou": 0.8380277971892232,
+          "delta": -0.007856631044988127
+        },
+        {
+          "id": "sequence-A:1143",
+          "trial": 1,
+          "baseline_iou": 0.8227481960686744,
+          "candidate_iou": 0.7488570255771496,
+          "delta": -0.07389117049152483
+        },
+        {
+          "id": "sequence-A:1077",
+          "trial": 1,
+          "baseline_iou": 0.6306011643880419,
+          "candidate_iou": 0.8260245574868441,
+          "delta": 0.1954233930988022
+        },
+        {
+          "id": "sequence-A:1029",
+          "trial": 1,
+          "baseline_iou": 0.6754426807760158,
+          "candidate_iou": 0.6754426807760158,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-A:918",
+          "trial": 1,
+          "baseline_iou": 0.8904615715503746,
+          "candidate_iou": 0.8591291332689985,
+          "delta": -0.03133243828137611
+        },
+        {
+          "id": "sequence-A:819",
+          "trial": 1,
+          "baseline_iou": 0.7532542941903072,
+          "candidate_iou": 0.7546939175605074,
+          "delta": 0.0014396233702002048
+        },
+        {
+          "id": "sequence-A:804",
+          "trial": 1,
+          "baseline_iou": 0.809258260411577,
+          "candidate_iou": 0.8097743487722736,
+          "delta": 0.0005160883606966093
+        },
+        {
+          "id": "sequence-A:711",
+          "trial": 1,
+          "baseline_iou": 0.835566783831283,
+          "candidate_iou": 0.8342418972237096,
+          "delta": -0.001324886607573461
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 1,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-A:480",
+          "trial": 1,
+          "baseline_iou": 0.790680585359862,
+          "candidate_iou": 0.788294426775634,
+          "delta": -0.002386158584227971
+        },
+        {
+          "id": "sequence-A:399",
+          "trial": 1,
+          "baseline_iou": 0.6129819424109332,
+          "candidate_iou": 0.6802057947468194,
+          "delta": 0.06722385233588624
+        },
+        {
+          "id": "sequence-A:363",
+          "trial": 1,
+          "baseline_iou": 0.5081998449097149,
+          "candidate_iou": 0.5759598242310102,
+          "delta": 0.0677599793212953
+        },
+        {
+          "id": "sequence-A:351",
+          "trial": 1,
+          "baseline_iou": 0.574310057878134,
+          "candidate_iou": 0.6499547723818844,
+          "delta": 0.07564471450375032
+        },
+        {
+          "id": "sequence-A:243",
+          "trial": 1,
+          "baseline_iou": 0.7596439169139455,
+          "candidate_iou": 0.7611304897140807,
+          "delta": 0.0014865728001351997
+        },
+        {
+          "id": "sequence-A:225",
+          "trial": 1,
+          "baseline_iou": 0.7371065578738005,
+          "candidate_iou": 0.7347560063506535,
+          "delta": -0.0023505515231470042
+        },
+        {
+          "id": "sequence-A:114",
+          "trial": 1,
+          "baseline_iou": 0.7999882242807538,
+          "candidate_iou": 0.7982369953110506,
+          "delta": -0.0017512289697031447
+        },
+        {
+          "id": "sequence-A:111",
+          "trial": 1,
+          "baseline_iou": 0.7515491306455433,
+          "candidate_iou": 0.8456388728043033,
+          "delta": 0.09408974215875998
+        },
+        {
+          "id": "sequence-A:18",
+          "trial": 1,
+          "baseline_iou": 0.9534024551926704,
+          "candidate_iou": 0.9528766850741652,
+          "delta": -0.0005257701185051866
+        },
+        {
+          "id": "sequence-A:0",
+          "trial": 1,
+          "baseline_iou": 0.8872410397148993,
+          "candidate_iou": 0.8772509888560666,
+          "delta": -0.009990050858832755
+        }
+      ]
+    },
+    {
+      "tag": "combined-performance-nvfp4",
+      "concurrency": 16,
+      "comparisons": 128,
+      "speedup": 1.2080045917094833,
+      "changed": 87,
+      "regressions": [
+        {
+          "id": "sequence-A:693",
+          "trial": 0,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 0,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 0,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.0,
+          "delta": -0.7975546928853902
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 0,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 1,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 1,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.0,
+          "delta": -0.7975546928853902
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 1,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 1,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        }
+      ],
+      "improvements": [
+        {
+          "id": "sequence-B:201",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.7492090077285768
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.789263190278419,
+          "delta": 0.789263190278419
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7155555555555555,
+          "delta": 0.7155555555555555
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.7492090077285768
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        }
+      ],
+      "changes": [
+        {
+          "id": "sequence-A:0",
+          "trial": 0,
+          "baseline_iou": 0.8872410397148993,
+          "candidate_iou": 0.8772509888560666,
+          "delta": -0.009990050858832755
+        },
+        {
+          "id": "sequence-A:18",
+          "trial": 0,
+          "baseline_iou": 0.9532560849447983,
+          "candidate_iou": 0.9528766850741652,
+          "delta": -0.0003793998706330681
+        },
+        {
+          "id": "sequence-A:111",
+          "trial": 0,
+          "baseline_iou": 0.7515491306455433,
+          "candidate_iou": 0.8456388728043033,
+          "delta": 0.09408974215875998
+        },
+        {
+          "id": "sequence-A:225",
+          "trial": 0,
+          "baseline_iou": 0.7371065578738005,
+          "candidate_iou": 0.7347560063506535,
+          "delta": -0.0023505515231470042
+        },
+        {
+          "id": "sequence-A:243",
+          "trial": 0,
+          "baseline_iou": 0.7596439169139455,
+          "candidate_iou": 0.7447156000689632,
+          "delta": -0.014928316844982303
+        },
+        {
+          "id": "sequence-A:351",
+          "trial": 0,
+          "baseline_iou": 0.6491823847905854,
+          "candidate_iou": 0.6499547723818844,
+          "delta": 0.0007723875912989397
+        },
+        {
+          "id": "sequence-A:360",
+          "trial": 0,
+          "baseline_iou": 0.6630561878952134,
+          "candidate_iou": 0.6603939579201654,
+          "delta": -0.0026622299750479472
+        },
+        {
+          "id": "sequence-A:363",
+          "trial": 0,
+          "baseline_iou": 0.5081998449097149,
+          "candidate_iou": 0.5759598242310102,
+          "delta": 0.0677599793212953
+        },
+        {
+          "id": "sequence-A:399",
+          "trial": 0,
+          "baseline_iou": 0.6129819424109332,
+          "candidate_iou": 0.6802057947468194,
+          "delta": 0.06722385233588624
+        },
+        {
+          "id": "sequence-A:480",
+          "trial": 0,
+          "baseline_iou": 0.790680585359862,
+          "candidate_iou": 0.788294426775634,
+          "delta": -0.002386158584227971
+        },
+        {
+          "id": "sequence-A:597",
+          "trial": 0,
+          "baseline_iou": 0.8667272270896342,
+          "candidate_iou": 0.8663942403597971,
+          "delta": -0.00033298672983717026
+        },
+        {
+          "id": "sequence-A:627",
+          "trial": 0,
+          "baseline_iou": 0.8393545502417169,
+          "candidate_iou": 0.8487254953180511,
+          "delta": 0.00937094507633418
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 0,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-A:711",
+          "trial": 0,
+          "baseline_iou": 0.835566783831283,
+          "candidate_iou": 0.8342418972237096,
+          "delta": -0.001324886607573461
+        },
+        {
+          "id": "sequence-A:819",
+          "trial": 0,
+          "baseline_iou": 0.7546939175605074,
+          "candidate_iou": 0.7532542941903072,
+          "delta": -0.0014396233702002048
+        },
+        {
+          "id": "sequence-A:918",
+          "trial": 0,
+          "baseline_iou": 0.8904615715503746,
+          "candidate_iou": 0.8591291332689985,
+          "delta": -0.03133243828137611
+        },
+        {
+          "id": "sequence-A:1077",
+          "trial": 0,
+          "baseline_iou": 0.684432749290562,
+          "candidate_iou": 0.7111965401249399,
+          "delta": 0.026763790834377965
+        },
+        {
+          "id": "sequence-A:1224",
+          "trial": 0,
+          "baseline_iou": 0.8637838926607497,
+          "candidate_iou": 0.8632338976203643,
+          "delta": -0.0005499950403854426
+        },
+        {
+          "id": "sequence-A:1263",
+          "trial": 0,
+          "baseline_iou": 0.8458999049015017,
+          "candidate_iou": 0.7985538441934523,
+          "delta": -0.047346060708049365
+        },
+        {
+          "id": "sequence-B:0",
+          "trial": 0,
+          "baseline_iou": 0.8014755013177027,
+          "candidate_iou": 0.8161747295149289,
+          "delta": 0.014699228197226133
+        },
+        {
+          "id": "sequence-B:3",
+          "trial": 0,
+          "baseline_iou": 0.7948644516067096,
+          "candidate_iou": 0.7939909265392511,
+          "delta": -0.0008735250674585249
+        },
+        {
+          "id": "sequence-B:12",
+          "trial": 0,
+          "baseline_iou": 0.7801169590643275,
+          "candidate_iou": 0.8097340310004127,
+          "delta": 0.029617071936085204
+        },
+        {
+          "id": "sequence-B:15",
+          "trial": 0,
+          "baseline_iou": 0.7733333333333333,
+          "candidate_iou": 0.8060650067834824,
+          "delta": 0.032731673450149046
+        },
+        {
+          "id": "sequence-B:24",
+          "trial": 0,
+          "baseline_iou": 0.8101888104715135,
+          "candidate_iou": 0.822957020150145,
+          "delta": 0.01276820967863157
+        },
+        {
+          "id": "sequence-B:30",
+          "trial": 0,
+          "baseline_iou": 0.7604415917843391,
+          "candidate_iou": 0.7467108356933114,
+          "delta": -0.013730756091027696
+        },
+        {
+          "id": "sequence-B:54",
+          "trial": 0,
+          "baseline_iou": 0.7966868920350569,
+          "candidate_iou": 0.8067726125055699,
+          "delta": 0.010085720470512927
+        },
+        {
+          "id": "sequence-B:72",
+          "trial": 0,
+          "baseline_iou": 0.8479866332497904,
+          "candidate_iou": 0.7890590875544108,
+          "delta": -0.05892754569537961
+        },
+        {
+          "id": "sequence-B:93",
+          "trial": 0,
+          "baseline_iou": 0.7608777994274037,
+          "candidate_iou": 0.7614389272286688,
+          "delta": 0.0005611278012650489
+        },
+        {
+          "id": "sequence-B:105",
+          "trial": 0,
+          "baseline_iou": 0.7920065045608149,
+          "candidate_iou": 0.7232120165671393,
+          "delta": -0.0687944879936756
+        },
+        {
+          "id": "sequence-B:153",
+          "trial": 0,
+          "baseline_iou": 0.7712342079689022,
+          "candidate_iou": 0.7739297853628396,
+          "delta": 0.0026955773939374428
+        },
+        {
+          "id": "sequence-B:165",
+          "trial": 0,
+          "baseline_iou": 0.7964762637208983,
+          "candidate_iou": 0.8354752485833428,
+          "delta": 0.038998984862444463
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 0,
+          "baseline_iou": 0.7722473604826547,
+          "candidate_iou": 0.8345172527878862,
+          "delta": 0.0622698923052315
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:219",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:261",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:270",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 0,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-B:282",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.7492090077285768
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 0,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.0,
+          "delta": -0.7975546928853902
+        },
+        {
+          "id": "sequence-B:1197",
+          "trial": 0,
+          "baseline_iou": 0.0046390002120896105,
+          "candidate_iou": 0.004772838211632,
+          "delta": 0.00013383799954238933
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.789263190278419,
+          "delta": 0.789263190278419
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 0,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 1,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7155555555555555,
+          "delta": 0.7155555555555555
+        },
+        {
+          "id": "sequence-B:1197",
+          "trial": 1,
+          "baseline_iou": 0.0046390002120896105,
+          "candidate_iou": 0.0051425760174391094,
+          "delta": 0.0005035758053494989
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 1,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.0,
+          "delta": -0.7975546928853902
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.7492090077285768
+        },
+        {
+          "id": "sequence-B:282",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 1,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-B:270",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:261",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:234",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:204",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 1,
+          "baseline_iou": 0.7722473604826547,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.007374828204822936
+        },
+        {
+          "id": "sequence-B:165",
+          "trial": 1,
+          "baseline_iou": 0.7964762637208983,
+          "candidate_iou": 0.8354752485833428,
+          "delta": 0.038998984862444463
+        },
+        {
+          "id": "sequence-B:105",
+          "trial": 1,
+          "baseline_iou": 0.7920065045608149,
+          "candidate_iou": 0.7844507806014097,
+          "delta": -0.007555723959405181
+        },
+        {
+          "id": "sequence-B:93",
+          "trial": 1,
+          "baseline_iou": 0.7608777994274037,
+          "candidate_iou": 0.7620107380309904,
+          "delta": 0.0011329386035866529
+        },
+        {
+          "id": "sequence-B:72",
+          "trial": 1,
+          "baseline_iou": 0.8479866332497904,
+          "candidate_iou": 0.7894697479620071,
+          "delta": -0.058516885287783316
+        },
+        {
+          "id": "sequence-B:54",
+          "trial": 1,
+          "baseline_iou": 0.7966868920350569,
+          "candidate_iou": 0.8076480304319539,
+          "delta": 0.010961138396896941
+        },
+        {
+          "id": "sequence-B:30",
+          "trial": 1,
+          "baseline_iou": 0.7604415917843391,
+          "candidate_iou": 0.7473986972337371,
+          "delta": -0.013042894550602036
+        },
+        {
+          "id": "sequence-B:24",
+          "trial": 1,
+          "baseline_iou": 0.8101888104715135,
+          "candidate_iou": 0.8085794733747951,
+          "delta": -0.0016093370967183995
+        },
+        {
+          "id": "sequence-B:15",
+          "trial": 1,
+          "baseline_iou": 0.7733333333333333,
+          "candidate_iou": 0.8060650067834824,
+          "delta": 0.032731673450149046
+        },
+        {
+          "id": "sequence-B:12",
+          "trial": 1,
+          "baseline_iou": 0.7801169590643275,
+          "candidate_iou": 0.8097340310004127,
+          "delta": 0.029617071936085204
+        },
+        {
+          "id": "sequence-B:3",
+          "trial": 1,
+          "baseline_iou": 0.7948644516067096,
+          "candidate_iou": 0.7939909265392511,
+          "delta": -0.0008735250674585249
+        },
+        {
+          "id": "sequence-B:0",
+          "trial": 1,
+          "baseline_iou": 0.8014755013177027,
+          "candidate_iou": 0.8161747295149289,
+          "delta": 0.014699228197226133
+        },
+        {
+          "id": "sequence-A:1263",
+          "trial": 1,
+          "baseline_iou": 0.8458776753635324,
+          "candidate_iou": 0.8458999049015017,
+          "delta": 2.2229537969264968e-05
+        },
+        {
+          "id": "sequence-A:1257",
+          "trial": 1,
+          "baseline_iou": 0.8458844282342113,
+          "candidate_iou": 0.8225087639079413,
+          "delta": -0.02337566432627003
+        },
+        {
+          "id": "sequence-A:1143",
+          "trial": 1,
+          "baseline_iou": 0.8227481960686744,
+          "candidate_iou": 0.7488570255771496,
+          "delta": -0.07389117049152483
+        },
+        {
+          "id": "sequence-A:1077",
+          "trial": 1,
+          "baseline_iou": 0.684432749290562,
+          "candidate_iou": 0.7111965401249399,
+          "delta": 0.026763790834377965
+        },
+        {
+          "id": "sequence-A:918",
+          "trial": 1,
+          "baseline_iou": 0.8904615715503746,
+          "candidate_iou": 0.8591291332689985,
+          "delta": -0.03133243828137611
+        },
+        {
+          "id": "sequence-A:819",
+          "trial": 1,
+          "baseline_iou": 0.7546939175605074,
+          "candidate_iou": 0.7532542941903072,
+          "delta": -0.0014396233702002048
+        },
+        {
+          "id": "sequence-A:711",
+          "trial": 1,
+          "baseline_iou": 0.835566783831283,
+          "candidate_iou": 0.8342418972237096,
+          "delta": -0.001324886607573461
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 1,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-A:627",
+          "trial": 1,
+          "baseline_iou": 0.8393545502417169,
+          "candidate_iou": 0.8487254953180511,
+          "delta": 0.00937094507633418
+        },
+        {
+          "id": "sequence-A:597",
+          "trial": 1,
+          "baseline_iou": 0.8667272270896342,
+          "candidate_iou": 0.8663942403597971,
+          "delta": -0.00033298672983717026
+        },
+        {
+          "id": "sequence-A:480",
+          "trial": 1,
+          "baseline_iou": 0.790680585359862,
+          "candidate_iou": 0.788294426775634,
+          "delta": -0.002386158584227971
+        },
+        {
+          "id": "sequence-A:462",
+          "trial": 1,
+          "baseline_iou": 0.6996070440983837,
+          "candidate_iou": 0.6213396375098491,
+          "delta": -0.0782674065885346
+        },
+        {
+          "id": "sequence-A:399",
+          "trial": 1,
+          "baseline_iou": 0.6129819424109332,
+          "candidate_iou": 0.7148601501980965,
+          "delta": 0.10187820778716328
+        },
+        {
+          "id": "sequence-A:363",
+          "trial": 1,
+          "baseline_iou": 0.5081998449097149,
+          "candidate_iou": 0.5759598242310102,
+          "delta": 0.0677599793212953
+        },
+        {
+          "id": "sequence-A:360",
+          "trial": 1,
+          "baseline_iou": 0.6630561878952134,
+          "candidate_iou": 0.6603939579201654,
+          "delta": -0.0026622299750479472
+        },
+        {
+          "id": "sequence-A:243",
+          "trial": 1,
+          "baseline_iou": 0.7596439169139455,
+          "candidate_iou": 0.8010952292556156,
+          "delta": 0.0414513123416701
+        },
+        {
+          "id": "sequence-A:225",
+          "trial": 1,
+          "baseline_iou": 0.7371065578738005,
+          "candidate_iou": 0.7347560063506535,
+          "delta": -0.0023505515231470042
+        },
+        {
+          "id": "sequence-A:111",
+          "trial": 1,
+          "baseline_iou": 0.7515491306455433,
+          "candidate_iou": 0.8456388728043033,
+          "delta": 0.09408974215875998
+        },
+        {
+          "id": "sequence-A:18",
+          "trial": 1,
+          "baseline_iou": 0.9532560849447983,
+          "candidate_iou": 0.9528766850741652,
+          "delta": -0.0003793998706330681
+        },
+        {
+          "id": "sequence-A:0",
+          "trial": 1,
+          "baseline_iou": 0.8872410397148993,
+          "candidate_iou": 0.8772509888560666,
+          "delta": -0.009990050858832755
+        }
+      ]
+    },
+    {
+      "tag": "combined-performance-nvfp4",
+      "concurrency": 32,
+      "comparisons": 128,
+      "speedup": 1.2094395207584208,
+      "changed": 88,
+      "regressions": [
+        {
+          "id": "sequence-A:693",
+          "trial": 0,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 0,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 0,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.0,
+          "delta": -0.7975546928853902
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 0,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 1,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 1,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 1,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        }
+      ],
+      "improvements": [
+        {
+          "id": "sequence-B:201",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7780703361241135,
+          "delta": 0.7780703361241135
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7155555555555555,
+          "delta": 0.7155555555555555
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7155555555555555,
+          "delta": 0.7155555555555555
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.7492090077285768
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        }
+      ],
+      "changes": [
+        {
+          "id": "sequence-A:0",
+          "trial": 0,
+          "baseline_iou": 0.8872410397148993,
+          "candidate_iou": 0.8781122928964087,
+          "delta": -0.00912874681849063
+        },
+        {
+          "id": "sequence-A:18",
+          "trial": 0,
+          "baseline_iou": 0.9532384670501312,
+          "candidate_iou": 0.9528766850741652,
+          "delta": -0.00036178197596592465
+        },
+        {
+          "id": "sequence-A:111",
+          "trial": 0,
+          "baseline_iou": 0.7515491306455433,
+          "candidate_iou": 0.8456388728043033,
+          "delta": 0.09408974215875998
+        },
+        {
+          "id": "sequence-A:132",
+          "trial": 0,
+          "baseline_iou": 0.7891563127889843,
+          "candidate_iou": 0.7882388495923919,
+          "delta": -0.0009174631965924718
+        },
+        {
+          "id": "sequence-A:225",
+          "trial": 0,
+          "baseline_iou": 0.7371065578738005,
+          "candidate_iou": 0.7347560063506535,
+          "delta": -0.0023505515231470042
+        },
+        {
+          "id": "sequence-A:351",
+          "trial": 0,
+          "baseline_iou": 0.5750667488190605,
+          "candidate_iou": 0.6491823847905854,
+          "delta": 0.07411563597152493
+        },
+        {
+          "id": "sequence-A:360",
+          "trial": 0,
+          "baseline_iou": 0.6630561878952134,
+          "candidate_iou": 0.6603939579201654,
+          "delta": -0.0026622299750479472
+        },
+        {
+          "id": "sequence-A:363",
+          "trial": 0,
+          "baseline_iou": 0.5081998449097149,
+          "candidate_iou": 0.5759598242310102,
+          "delta": 0.0677599793212953
+        },
+        {
+          "id": "sequence-A:399",
+          "trial": 0,
+          "baseline_iou": 0.6129819424109332,
+          "candidate_iou": 0.6802057947468194,
+          "delta": 0.06722385233588624
+        },
+        {
+          "id": "sequence-A:480",
+          "trial": 0,
+          "baseline_iou": 0.790680585359862,
+          "candidate_iou": 0.788294426775634,
+          "delta": -0.002386158584227971
+        },
+        {
+          "id": "sequence-A:597",
+          "trial": 0,
+          "baseline_iou": 0.8667272270896342,
+          "candidate_iou": 0.8663942403597971,
+          "delta": -0.00033298672983717026
+        },
+        {
+          "id": "sequence-A:627",
+          "trial": 0,
+          "baseline_iou": 0.8487966414403237,
+          "candidate_iou": 0.8487254953180511,
+          "delta": -7.114612227265837e-05
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 0,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-A:711",
+          "trial": 0,
+          "baseline_iou": 0.835566783831283,
+          "candidate_iou": 0.8342418972237096,
+          "delta": -0.001324886607573461
+        },
+        {
+          "id": "sequence-A:819",
+          "trial": 0,
+          "baseline_iou": 0.7546939175605074,
+          "candidate_iou": 0.7532542941903072,
+          "delta": -0.0014396233702002048
+        },
+        {
+          "id": "sequence-A:918",
+          "trial": 0,
+          "baseline_iou": 0.8904615715503746,
+          "candidate_iou": 0.8591291332689985,
+          "delta": -0.03133243828137611
+        },
+        {
+          "id": "sequence-A:1029",
+          "trial": 0,
+          "baseline_iou": 0.6754426807760158,
+          "candidate_iou": 0.6932501948558075,
+          "delta": 0.017807514079791753
+        },
+        {
+          "id": "sequence-A:1077",
+          "trial": 0,
+          "baseline_iou": 0.6306011643880419,
+          "candidate_iou": 0.7111965401249399,
+          "delta": 0.08059537573689801
+        },
+        {
+          "id": "sequence-A:1257",
+          "trial": 0,
+          "baseline_iou": 0.8459317838968984,
+          "candidate_iou": 0.8458844282342113,
+          "delta": -4.7355662687098565e-05
+        },
+        {
+          "id": "sequence-A:1263",
+          "trial": 0,
+          "baseline_iou": 0.8458999049015017,
+          "candidate_iou": 0.7985538441934523,
+          "delta": -0.047346060708049365
+        },
+        {
+          "id": "sequence-B:0",
+          "trial": 0,
+          "baseline_iou": 0.8014755013177027,
+          "candidate_iou": 0.8161747295149289,
+          "delta": 0.014699228197226133
+        },
+        {
+          "id": "sequence-B:3",
+          "trial": 0,
+          "baseline_iou": 0.7948644516067096,
+          "candidate_iou": 0.7939909265392511,
+          "delta": -0.0008735250674585249
+        },
+        {
+          "id": "sequence-B:12",
+          "trial": 0,
+          "baseline_iou": 0.7801169590643275,
+          "candidate_iou": 0.8097340310004127,
+          "delta": 0.029617071936085204
+        },
+        {
+          "id": "sequence-B:15",
+          "trial": 0,
+          "baseline_iou": 0.7996371882086167,
+          "candidate_iou": 0.8060650067834824,
+          "delta": 0.006427818574865629
+        },
+        {
+          "id": "sequence-B:24",
+          "trial": 0,
+          "baseline_iou": 0.8101888104715135,
+          "candidate_iou": 0.8093081025790896,
+          "delta": -0.0008807078924238931
+        },
+        {
+          "id": "sequence-B:30",
+          "trial": 0,
+          "baseline_iou": 0.7604415917843391,
+          "candidate_iou": 0.7473986972337371,
+          "delta": -0.013042894550602036
+        },
+        {
+          "id": "sequence-B:54",
+          "trial": 0,
+          "baseline_iou": 0.7856800995501104,
+          "candidate_iou": 0.8061284619917505,
+          "delta": 0.020448362441640056
+        },
+        {
+          "id": "sequence-B:93",
+          "trial": 0,
+          "baseline_iou": 0.7608777994274037,
+          "candidate_iou": 0.7614389272286688,
+          "delta": 0.0005611278012650489
+        },
+        {
+          "id": "sequence-B:105",
+          "trial": 0,
+          "baseline_iou": 0.7920065045608149,
+          "candidate_iou": 0.7232120165671393,
+          "delta": -0.0687944879936756
+        },
+        {
+          "id": "sequence-B:153",
+          "trial": 0,
+          "baseline_iou": 0.7712342079689022,
+          "candidate_iou": 0.7739297853628396,
+          "delta": 0.0026955773939374428
+        },
+        {
+          "id": "sequence-B:165",
+          "trial": 0,
+          "baseline_iou": 0.7964762637208983,
+          "candidate_iou": 0.8354752485833428,
+          "delta": 0.038998984862444463
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 0,
+          "baseline_iou": 0.7722473604826547,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.007374828204822936
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:204",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:219",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:234",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:261",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:270",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 0,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-B:282",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7780703361241135,
+          "delta": 0.7780703361241135
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 0,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.0,
+          "delta": -0.7975546928853902
+        },
+        {
+          "id": "sequence-B:1197",
+          "trial": 0,
+          "baseline_iou": 0.0046390002120896105,
+          "candidate_iou": 0.0051425760174391094,
+          "delta": 0.0005035758053494989
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 0,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7155555555555555,
+          "delta": 0.7155555555555555
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 0,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:1344",
+          "trial": 1,
+          "baseline_iou": 0.6678052946199835,
+          "candidate_iou": 0.0,
+          "delta": -0.6678052946199835
+        },
+        {
+          "id": "sequence-B:1332",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7155555555555555,
+          "delta": 0.7155555555555555
+        },
+        {
+          "id": "sequence-B:1197",
+          "trial": 1,
+          "baseline_iou": 0.0046390002120896105,
+          "candidate_iou": 0.004772838211632,
+          "delta": 0.00013383799954238933
+        },
+        {
+          "id": "sequence-B:534",
+          "trial": 1,
+          "baseline_iou": 0.7975546928853902,
+          "candidate_iou": 0.7982794423019879,
+          "delta": 0.0007247494165977253
+        },
+        {
+          "id": "sequence-B:300",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:294",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7492090077285768,
+          "delta": 0.7492090077285768
+        },
+        {
+          "id": "sequence-B:273",
+          "trial": 1,
+          "baseline_iou": 0.647529411764705,
+          "candidate_iou": 0.0,
+          "delta": -0.647529411764705
+        },
+        {
+          "id": "sequence-B:270",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:261",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:234",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.0,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-B:201",
+          "trial": 1,
+          "baseline_iou": 0.0,
+          "candidate_iou": 0.7828827610597371,
+          "delta": 0.7828827610597371
+        },
+        {
+          "id": "sequence-B:180",
+          "trial": 1,
+          "baseline_iou": 0.7722473604826547,
+          "candidate_iou": 0.7796221886874777,
+          "delta": 0.007374828204822936
+        },
+        {
+          "id": "sequence-B:165",
+          "trial": 1,
+          "baseline_iou": 0.7964762637208983,
+          "candidate_iou": 0.8354752485833428,
+          "delta": 0.038998984862444463
+        },
+        {
+          "id": "sequence-B:105",
+          "trial": 1,
+          "baseline_iou": 0.7920065045608149,
+          "candidate_iou": 0.7859686281369694,
+          "delta": -0.006037876423845456
+        },
+        {
+          "id": "sequence-B:93",
+          "trial": 1,
+          "baseline_iou": 0.7608777994274037,
+          "candidate_iou": 0.7620107380309904,
+          "delta": 0.0011329386035866529
+        },
+        {
+          "id": "sequence-B:72",
+          "trial": 1,
+          "baseline_iou": 0.8507190601579913,
+          "candidate_iou": 0.8479866332497904,
+          "delta": -0.002732426908200858
+        },
+        {
+          "id": "sequence-B:54",
+          "trial": 1,
+          "baseline_iou": 0.7856800995501104,
+          "candidate_iou": 0.8076480304319539,
+          "delta": 0.021967930881843456
+        },
+        {
+          "id": "sequence-B:30",
+          "trial": 1,
+          "baseline_iou": 0.7604415917843391,
+          "candidate_iou": 0.7742525959229508,
+          "delta": 0.013811004138611693
+        },
+        {
+          "id": "sequence-B:24",
+          "trial": 1,
+          "baseline_iou": 0.8101888104715135,
+          "candidate_iou": 0.8085794733747951,
+          "delta": -0.0016093370967183995
+        },
+        {
+          "id": "sequence-B:15",
+          "trial": 1,
+          "baseline_iou": 0.7996371882086167,
+          "candidate_iou": 0.8060650067834824,
+          "delta": 0.006427818574865629
+        },
+        {
+          "id": "sequence-B:12",
+          "trial": 1,
+          "baseline_iou": 0.7801169590643275,
+          "candidate_iou": 0.8097340310004127,
+          "delta": 0.029617071936085204
+        },
+        {
+          "id": "sequence-B:3",
+          "trial": 1,
+          "baseline_iou": 0.7948644516067096,
+          "candidate_iou": 0.7939909265392511,
+          "delta": -0.0008735250674585249
+        },
+        {
+          "id": "sequence-B:0",
+          "trial": 1,
+          "baseline_iou": 0.8014755013177027,
+          "candidate_iou": 0.8161747295149289,
+          "delta": 0.014699228197226133
+        },
+        {
+          "id": "sequence-A:1077",
+          "trial": 1,
+          "baseline_iou": 0.6306011643880419,
+          "candidate_iou": 0.7111965401249399,
+          "delta": 0.08059537573689801
+        },
+        {
+          "id": "sequence-A:1029",
+          "trial": 1,
+          "baseline_iou": 0.6754426807760158,
+          "candidate_iou": 0.6754426807760158,
+          "delta": 0.0
+        },
+        {
+          "id": "sequence-A:918",
+          "trial": 1,
+          "baseline_iou": 0.8904615715503746,
+          "candidate_iou": 0.8963659106027865,
+          "delta": 0.005904339052411833
+        },
+        {
+          "id": "sequence-A:819",
+          "trial": 1,
+          "baseline_iou": 0.7546939175605074,
+          "candidate_iou": 0.7532542941903072,
+          "delta": -0.0014396233702002048
+        },
+        {
+          "id": "sequence-A:711",
+          "trial": 1,
+          "baseline_iou": 0.835566783831283,
+          "candidate_iou": 0.8342418972237096,
+          "delta": -0.001324886607573461
+        },
+        {
+          "id": "sequence-A:693",
+          "trial": 1,
+          "baseline_iou": 0.8846903962337372,
+          "candidate_iou": 0.0,
+          "delta": -0.8846903962337372
+        },
+        {
+          "id": "sequence-A:627",
+          "trial": 1,
+          "baseline_iou": 0.8487966414403237,
+          "candidate_iou": 0.8487254953180511,
+          "delta": -7.114612227265837e-05
+        },
+        {
+          "id": "sequence-A:597",
+          "trial": 1,
+          "baseline_iou": 0.8667272270896342,
+          "candidate_iou": 0.8663942403597971,
+          "delta": -0.00033298672983717026
+        },
+        {
+          "id": "sequence-A:480",
+          "trial": 1,
+          "baseline_iou": 0.790680585359862,
+          "candidate_iou": 0.7873896595208069,
+          "delta": -0.0032909258390551033
+        },
+        {
+          "id": "sequence-A:462",
+          "trial": 1,
+          "baseline_iou": 0.6996070440983837,
+          "candidate_iou": 0.6213396375098491,
+          "delta": -0.0782674065885346
+        },
+        {
+          "id": "sequence-A:399",
+          "trial": 1,
+          "baseline_iou": 0.6129819424109332,
+          "candidate_iou": 0.7148601501980965,
+          "delta": 0.10187820778716328
+        },
+        {
+          "id": "sequence-A:363",
+          "trial": 1,
+          "baseline_iou": 0.5081998449097149,
+          "candidate_iou": 0.5759598242310102,
+          "delta": 0.0677599793212953
+        },
+        {
+          "id": "sequence-A:360",
+          "trial": 1,
+          "baseline_iou": 0.6630561878952134,
+          "candidate_iou": 0.6603939579201654,
+          "delta": -0.0026622299750479472
+        },
+        {
+          "id": "sequence-A:351",
+          "trial": 1,
+          "baseline_iou": 0.5750667488190605,
+          "candidate_iou": 0.6491823847905854,
+          "delta": 0.07411563597152493
+        },
+        {
+          "id": "sequence-A:243",
+          "trial": 1,
+          "baseline_iou": 0.7596439169139455,
+          "candidate_iou": 0.8010952292556156,
+          "delta": 0.0414513123416701
+        },
+        {
+          "id": "sequence-A:225",
+          "trial": 1,
+          "baseline_iou": 0.7371065578738005,
+          "candidate_iou": 0.7347560063506535,
+          "delta": -0.0023505515231470042
+        },
+        {
+          "id": "sequence-A:132",
+          "trial": 1,
+          "baseline_iou": 0.7891563127889843,
+          "candidate_iou": 0.7882388495923919,
+          "delta": -0.0009174631965924718
+        },
+        {
+          "id": "sequence-A:111",
+          "trial": 1,
+          "baseline_iou": 0.7515491306455433,
+          "candidate_iou": 0.8456388728043033,
+          "delta": 0.09408974215875998
+        },
+        {
+          "id": "sequence-A:18",
+          "trial": 1,
+          "baseline_iou": 0.9532384670501312,
+          "candidate_iou": 0.9528766850741652,
+          "delta": -0.00036178197596592465
+        },
+        {
+          "id": "sequence-A:0",
+          "trial": 1,
+          "baseline_iou": 0.8872410397148993,
+          "candidate_iou": 0.8781122928964087,
+          "delta": -0.00912874681849063
+        }
+      ]
+    }
+  ],
+  "components": [],
+  "observations": 768,
+  "status": "complete"
+}
